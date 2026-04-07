@@ -13,7 +13,7 @@ DEFAULT_VERSION="${DEFAULT_VERSION:-1.0.0}"
 
 # Distribution links
 REPO_OWNER="${REPO_OWNER:-harshvardhaniimi}"
-REPO_NAME="${REPO_NAME:-whisper-mac}"
+REPO_NAME="${REPO_NAME:-kalam}"
 RELEASE_ZIP_NAME="${RELEASE_ZIP_NAME:-${APP_NAME}.zip}"
 DOWNLOAD_URL="${DOWNLOAD_URL:-https://github.com/${REPO_OWNER}/${REPO_NAME}/releases/latest/download/${RELEASE_ZIP_NAME}}"
 FEEDBACK_URL="${FEEDBACK_URL:-https://github.com/${REPO_OWNER}/${REPO_NAME}/issues}"

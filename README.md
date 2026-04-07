@@ -57,7 +57,7 @@ A beautiful, native macOS app for speech-to-text transcription powered by OpenAI
 
 Run this in Terminal:
 ```bash
-curl -sL https://raw.githubusercontent.com/harshvardhaniimi/whisper-mac/main/install.sh | bash
+curl -sL https://raw.githubusercontent.com/harshvardhaniimi/kalam/main/install.sh | bash
 ```
 
 Then right-click the app in Applications and select "Open" (first time only).
@@ -66,7 +66,7 @@ Then right-click the app in Applications and select "Open" (first time only).
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/harshvardhaniimi/whisper-mac.git
+   git clone https://github.com/harshvardhaniimi/kalam.git
    cd whisper-mac
    ```
 
@@ -84,7 +84,7 @@ Or open `Package.swift` in Xcode and press ⌘+R.
 
 ### Option 3: Manual Download
 
-1. **Download** the latest `Kalam.zip` from [Releases](https://github.com/harshvardhaniimi/whisper-mac/releases)
+1. **Download** the latest `Kalam.zip` from [Releases](https://github.com/harshvardhaniimi/kalam/releases)
 2. **Unzip** and move `Kalam.app` to your Applications folder
 3. **Remove quarantine** (required for apps not notarized with Apple):
    ```bash
@@ -286,7 +286,7 @@ Contributions are welcome! Please feel free to submit pull requests or open issu
 To completely remove Kalam and all its data:
 
 ```bash
-curl -sL https://raw.githubusercontent.com/harshvardhaniimi/whisper-mac/main/uninstall.sh | bash
+curl -sL https://raw.githubusercontent.com/harshvardhaniimi/kalam/main/uninstall.sh | bash
 ```
 
 Or manually:
@@ -298,7 +298,7 @@ Or manually:
 
 **We welcome your feedback!** This project is actively maintained and we'd love to hear from you:
 
-- 🐛 **Bug Reports**: [Open an issue](https://github.com/harshvardhaniimi/whisper-mac/issues) with detailed steps to reproduce
+- 🐛 **Bug Reports**: [Open an issue](https://github.com/harshvardhaniimi/kalam/issues) with detailed steps to reproduce
 - 💡 **Feature Requests**: Describe the feature and why it would be useful
 - 🔧 **Pull Requests**: Contributions are welcome! Please open an issue first to discuss major changes
 - 💬 **General Feedback**: Share your experience using Kalam

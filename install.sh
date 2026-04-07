@@ -11,7 +11,7 @@ if [ -f "${SCRIPT_DIR}/release.config.sh" ]; then
 else
     APP_NAME="${APP_NAME:-Kalam}"
     RELEASE_ZIP_NAME="${RELEASE_ZIP_NAME:-Kalam.zip}"
-    DOWNLOAD_URL="${DOWNLOAD_URL:-https://github.com/harshvardhaniimi/whisper-mac/releases/latest/download/${RELEASE_ZIP_NAME}}"
+    DOWNLOAD_URL="${DOWNLOAD_URL:-https://github.com/harshvardhaniimi/kalam/releases/latest/download/${RELEASE_ZIP_NAME}}"
     HOTKEY_DISPLAY="${HOTKEY_DISPLAY:-Cmd+Shift+Space}"
 fi
 

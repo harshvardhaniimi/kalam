@@ -13,7 +13,7 @@ else
     EXECUTABLE_NAME="${EXECUTABLE_NAME:-Kalam}"
     APP_SUPPORT_SUBDIR="${APP_SUPPORT_SUBDIR:-Kalam}"
     BUNDLE_ID="${BUNDLE_ID:-io.kalam.app}"
-    FEEDBACK_URL="${FEEDBACK_URL:-https://github.com/harshvardhaniimi/whisper-mac/issues}"
+    FEEDBACK_URL="${FEEDBACK_URL:-https://github.com/harshvardhaniimi/kalam/issues}"
 fi
 
 echo "🗑️  ${APP_NAME} Uninstaller"

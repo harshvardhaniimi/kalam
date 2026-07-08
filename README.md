@@ -1,4 +1,4 @@
-# Kalam 🎤
+# Kalam 🖋️
 
 A native macOS menu bar app for speech-to-text dictation — built for Hindi + English (including code-mixed Hinglish), and private by default.
 Local transcription runs on-device via OpenAI Whisper; an optional Sarvam AI cloud engine delivers the best Hindi accuracy available.
@@ -49,7 +49,7 @@ Text is automatically inserted at your cursor and copied to clipboard.
 *(Menu Bar App)*
 ```
 ┌─────────────────────────────────────┐
-│ 🎤 Kalam                🕐 ⚙️       │
+│ 🖋️ Kalam                🕐 ⚙️       │
 ├─────────────────────────────────────┤
 │                                     │
 │   Ready to transcribe               │

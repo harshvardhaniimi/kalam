@@ -346,7 +346,9 @@ struct SettingsView: View {
                     Text("Powered by:")
                         .font(DesignSystem.Typography.callout)
                         .foregroundColor(DesignSystem.Colors.textSecondary)
-                    Text("OpenAI Whisper (via WhisperKit)")
+                    Text(appState.transcriptionEngine == .sarvam
+                         ? "Sarvam AI Saaras v3 (cloud)"
+                         : "OpenAI Whisper \(appState.selectedModel.displayName) (on-device)")
                         .font(DesignSystem.Typography.callout)
                         .foregroundColor(DesignSystem.Colors.textPrimary)
                 }

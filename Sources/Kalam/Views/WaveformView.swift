@@ -3,6 +3,7 @@ import SwiftUI
 struct WaveformView: View {
     let audioLevel: Float
     @State private var animationPhase: CGFloat = 0
+    @State private var animationTimer: Timer?
 
     private let barCount = 40
     private let minBarHeight: CGFloat = 4
@@ -26,6 +27,10 @@ struct WaveformView: View {
         }
         .onAppear {
             startAnimation()
+        }
+        .onDisappear {
+            animationTimer?.invalidate()
+            animationTimer = nil
         }
     }
 
@@ -63,7 +68,8 @@ struct WaveformView: View {
     }
 
     private func startAnimation() {
-        Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { _ in
+        animationTimer?.invalidate()
+        animationTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { _ in
             withAnimation(.linear(duration: 0.05)) {
                 animationPhase += 0.1
             }

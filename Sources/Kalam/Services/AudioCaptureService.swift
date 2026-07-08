@@ -1,24 +1,74 @@
 import AVFoundation
 import Combine
 
+/// Collects samples from the audio render thread without actor hops.
+/// The tap callback appends synchronously under a lock, so no audio is
+/// lost or reordered, and stop() can drain everything deterministically.
+private final class SampleAccumulator: @unchecked Sendable {
+    private let lock = NSLock()
+    private var samples: [Float] = []
+
+    func reset() {
+        lock.lock(); defer { lock.unlock() }
+        samples.removeAll()
+    }
+
+    func append(_ newSamples: UnsafeBufferPointer<Float>) {
+        lock.lock(); defer { lock.unlock() }
+        samples.append(contentsOf: newSamples)
+    }
+
+    func drain() -> [Float] {
+        lock.lock(); defer { lock.unlock() }
+        let out = samples
+        samples = []
+        return out
+    }
+}
+
 @MainActor
 class AudioCaptureService: ObservableObject {
     @Published var audioLevel: Float = 0.0
     @Published var duration: TimeInterval = 0.0
     @Published var isRecording = false
 
+    /// Called if the audio engine's configuration changes mid-recording
+    /// (input device switched, AirPods connected/disconnected, etc.).
+    var onRecordingInterrupted: (() -> Void)?
+
+    /// Called when a recording ends itself — sustained silence or the
+    /// maximum duration cap. Keeps forgotten recordings from running
+    /// forever (unbounded memory, wasted Sarvam credits).
+    var onAutoStop: ((AutoStopReason) -> Void)?
+
+    enum AutoStopReason {
+        case silence
+        case maxDuration
+    }
+
+    /// Normalized level below which a buffer counts as silence.
+    /// Speech typically sits well above 0.3 on this scale.
+    static let silenceLevel: Float = 0.08
+    /// Auto-stop after this much continuous silence.
+    static let silenceTimeout: TimeInterval = 120
+    /// Hard cap on a single recording.
+    static let maxRecordingDuration: TimeInterval = 600
+
+    private var lastVoiceDate: Date?
+    private var autoStopFired = false
+
     private var audioEngine: AVAudioEngine?
-    private var inputNode: AVAudioInputNode?
-    private var audioFile: AVAudioFile?
     private var recordingStartTime: Date?
     private var levelTimer: Timer?
-    private var recordedBuffer: AVAudioPCMBuffer?
+    private var configChangeObserver: NSObjectProtocol?
 
-    // Store audio samples for processing
-    private var audioSamples: [Float] = []
+    private let accumulator = SampleAccumulator()
+    /// Sample rate the current/last recording was captured at.
+    private var captureSampleRate: Double = 0
+
+    static let whisperSampleRate: Double = 16000
 
     func requestPermission() async throws -> Bool {
-        #if os(macOS)
         let status = AVCaptureDevice.authorizationStatus(for: .audio)
 
         switch status {
@@ -31,7 +81,6 @@ class AudioCaptureService: ObservableObject {
         @unknown default:
             return false
         }
-        #endif
     }
 
     func startRecording() async throws {
@@ -40,160 +89,183 @@ class AudioCaptureService: ObservableObject {
             throw AudioError.permissionDenied
         }
 
-        audioEngine = AVAudioEngine()
-        guard let engine = audioEngine else {
-            throw AudioError.engineInitFailed
-        }
+        // Tear down any previous engine before starting fresh
+        teardownEngine()
 
-        inputNode = engine.inputNode
-        guard let input = inputNode else {
-            throw AudioError.noInputDevice
-        }
+        let engine = AVAudioEngine()
+        audioEngine = engine
+        let input = engine.inputNode
 
         let recordingFormat = input.outputFormat(forBus: 0)
 
-        // Clear previous recording
-        audioSamples.removeAll()
+        // A 0 Hz / 0-channel format means there is no usable input device
+        // (or the microphone permission was just revoked). Installing a tap
+        // with this format would crash, so fail loudly instead.
+        guard recordingFormat.sampleRate > 0, recordingFormat.channelCount > 0 else {
+            teardownEngine()
+            throw AudioError.noInputDevice
+        }
 
-        // Install tap on input
+        // Record at whatever rate the device actually runs (built-in mic 48kHz,
+        // many USB mics 44.1kHz, Bluetooth headsets 16-24kHz). We resample to
+        // 16kHz at stop time using the real rate — never assume 48kHz.
+        captureSampleRate = recordingFormat.sampleRate
+        accumulator.reset()
+
+        let accumulator = self.accumulator
         input.installTap(onBus: 0, bufferSize: 4096, format: recordingFormat) { [weak self] buffer, _ in
-            guard let self = self else { return }
+            guard let channelData = buffer.floatChannelData, buffer.frameLength > 0 else { return }
 
-            Task { @MainActor in
-                // Calculate audio level
-                self.calculateAudioLevel(from: buffer)
+            // Append synchronously on the render thread — an async hop here
+            // loses the tail of the recording and can reorder buffers.
+            let frames = Int(buffer.frameLength)
+            accumulator.append(UnsafeBufferPointer(start: channelData[0], count: frames))
 
-                // Store audio samples
-                self.appendBuffer(buffer)
+            // Level metering is display-only, so it may hop to the main actor.
+            var sum: Float = 0
+            for i in 0..<frames {
+                let s = channelData[0][i]
+                sum += s * s
+            }
+            let rms = sqrt(sum / Float(frames))
+            let avgPower = 20 * log10(max(rms, .leastNonzeroMagnitude))
+            let normalizedPower = max(0, min(1, (avgPower + 50) / 50))
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                self.audioLevel = normalizedPower
+                if normalizedPower > Self.silenceLevel {
+                    self.lastVoiceDate = Date()
+                }
             }
         }
 
-        // Start the engine
-        try engine.start()
+        do {
+            try engine.start()
+        } catch {
+            teardownEngine()
+            throw AudioError.engineInitFailed
+        }
+
+        // If the input device changes mid-recording the engine stops delivering
+        // audio silently. Surface it so the recording can end gracefully.
+        configChangeObserver = NotificationCenter.default.addObserver(
+            forName: .AVAudioEngineConfigurationChange,
+            object: engine,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                guard let self, self.isRecording else { return }
+                self.onRecordingInterrupted?()
+            }
+        }
 
         recordingStartTime = Date()
+        lastVoiceDate = Date()
+        autoStopFired = false
         isRecording = true
 
-        // Start duration timer
         let startTime = recordingStartTime
         levelTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
-            guard let self = self, let startTime = startTime else { return }
-            Task { @MainActor in
+            guard let startTime = startTime else { return }
+            Task { @MainActor [weak self] in
+                guard let self, self.isRecording else { return }
                 self.duration = Date().timeIntervalSince(startTime)
+                self.checkAutoStop()
             }
         }
     }
 
-    func stopRecording() async -> Data? {
-        levelTimer?.invalidate()
-        levelTimer = nil
+    private func checkAutoStop() {
+        guard !autoStopFired else { return }
 
-        inputNode?.removeTap(onBus: 0)
-        audioEngine?.stop()
-
-        isRecording = false
-        audioLevel = 0.0
-
-        // Convert stored samples to WAV data
-        return createWAVData()
+        if duration >= Self.maxRecordingDuration {
+            autoStopFired = true
+            onAutoStop?(.maxDuration)
+        } else if let lastVoice = lastVoiceDate,
+                  Date().timeIntervalSince(lastVoice) >= Self.silenceTimeout {
+            autoStopFired = true
+            onAutoStop?(.silence)
+        }
     }
 
-    /// Stop recording and return raw 16kHz mono float samples for WhisperKit.
+    /// Stop recording and return 16kHz mono float samples for WhisperKit.
+    /// Returns nil if no audio was captured.
     func stopRecordingAndGetSamples() async -> [Float]? {
         levelTimer?.invalidate()
         levelTimer = nil
 
-        inputNode?.removeTap(onBus: 0)
-        audioEngine?.stop()
+        teardownEngine()
 
         isRecording = false
         audioLevel = 0.0
 
-        guard !audioSamples.isEmpty else { return nil }
+        let captured = accumulator.drain()
+        guard !captured.isEmpty, captureSampleRate > 0 else { return nil }
 
-        // Resample from input sample rate (typically 48kHz) to 16kHz
-        return resample(audioSamples, from: 48000, to: 16000)
+        return resampleToWhisperRate(captured, from: captureSampleRate)
     }
 
-    private func calculateAudioLevel(from buffer: AVAudioPCMBuffer) {
-        guard let channelData = buffer.floatChannelData else { return }
-
-        let channelDataValue = channelData.pointee
-        let channelDataValueArray = stride(
-            from: 0,
-            to: Int(buffer.frameLength),
-            by: buffer.stride
-        ).map { channelDataValue[$0] }
-
-        let rms = sqrt(channelDataValueArray.map { $0 * $0 }.reduce(0, +) / Float(buffer.frameLength))
-        let avgPower = 20 * log10(rms)
-        let normalizedPower = max(0, min(1, (avgPower + 50) / 50))
-
-        audioLevel = normalizedPower
+    private func teardownEngine() {
+        if let observer = configChangeObserver {
+            NotificationCenter.default.removeObserver(observer)
+            configChangeObserver = nil
+        }
+        if let engine = audioEngine {
+            engine.inputNode.removeTap(onBus: 0)
+            engine.stop()
+        }
+        audioEngine = nil
     }
 
-    private func appendBuffer(_ buffer: AVAudioPCMBuffer) {
-        guard let channelData = buffer.floatChannelData else { return }
+    /// Convert captured mono samples from their native rate to 16kHz using
+    /// AVAudioConverter (proper anti-aliasing). Falls back to linear
+    /// interpolation if the converter cannot be created.
+    private func resampleToWhisperRate(_ samples: [Float], from sourceRate: Double) -> [Float] {
+        let targetRate = Self.whisperSampleRate
+        guard sourceRate != targetRate else { return samples }
 
-        let channelDataValue = channelData.pointee
-        let samples = Array(UnsafeBufferPointer(start: channelDataValue, count: Int(buffer.frameLength)))
-        audioSamples.append(contentsOf: samples)
-    }
-
-    private func createWAVData() -> Data? {
-        guard !audioSamples.isEmpty else { return nil }
-
-        // Convert to 16-bit PCM
-        let sampleRate: UInt32 = 16000 // Whisper expects 16kHz
-        let numChannels: UInt16 = 1
-        let bitsPerSample: UInt16 = 16
-
-        // Resample from 48kHz (typical input) to 16kHz
-        let resampledSamples = resample(audioSamples, from: 48000, to: 16000)
-
-        // Convert float samples to Int16
-        let int16Samples = resampledSamples.map { sample -> Int16 in
-            let clampedSample = max(-1.0, min(1.0, sample))
-            return Int16(clampedSample * Float(Int16.max))
+        guard
+            let sourceFormat = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: sourceRate, channels: 1, interleaved: false),
+            let targetFormat = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: targetRate, channels: 1, interleaved: false),
+            let converter = AVAudioConverter(from: sourceFormat, to: targetFormat),
+            let inputBuffer = AVAudioPCMBuffer(pcmFormat: sourceFormat, frameCapacity: AVAudioFrameCount(samples.count))
+        else {
+            return linearResample(samples, from: sourceRate, to: targetRate)
         }
 
-        // Create WAV file data
-        var data = Data()
-
-        // RIFF header
-        data.append("RIFF".data(using: .ascii)!)
-        let fileSize = UInt32(36 + int16Samples.count * 2)
-        data.append(withUnsafeBytes(of: fileSize.littleEndian) { Data($0) })
-        data.append("WAVE".data(using: .ascii)!)
-
-        // fmt chunk
-        data.append("fmt ".data(using: .ascii)!)
-        data.append(withUnsafeBytes(of: UInt32(16).littleEndian) { Data($0) })
-        data.append(withUnsafeBytes(of: UInt16(1).littleEndian) { Data($0) }) // PCM
-        data.append(withUnsafeBytes(of: numChannels.littleEndian) { Data($0) })
-        data.append(withUnsafeBytes(of: sampleRate.littleEndian) { Data($0) })
-        let byteRate = sampleRate * UInt32(numChannels) * UInt32(bitsPerSample) / 8
-        data.append(withUnsafeBytes(of: byteRate.littleEndian) { Data($0) })
-        let blockAlign = numChannels * bitsPerSample / 8
-        data.append(withUnsafeBytes(of: blockAlign.littleEndian) { Data($0) })
-        data.append(withUnsafeBytes(of: bitsPerSample.littleEndian) { Data($0) })
-
-        // data chunk
-        data.append("data".data(using: .ascii)!)
-        let dataSize = UInt32(int16Samples.count * 2)
-        data.append(withUnsafeBytes(of: dataSize.littleEndian) { Data($0) })
-
-        for sample in int16Samples {
-            data.append(withUnsafeBytes(of: sample.littleEndian) { Data($0) })
+        inputBuffer.frameLength = AVAudioFrameCount(samples.count)
+        samples.withUnsafeBufferPointer { src in
+            inputBuffer.floatChannelData![0].update(from: src.baseAddress!, count: samples.count)
         }
 
-        return data
+        let outputCapacity = AVAudioFrameCount(Double(samples.count) * targetRate / sourceRate) + 1
+        guard let outputBuffer = AVAudioPCMBuffer(pcmFormat: targetFormat, frameCapacity: outputCapacity) else {
+            return linearResample(samples, from: sourceRate, to: targetRate)
+        }
+
+        var fed = false
+        var error: NSError?
+        converter.convert(to: outputBuffer, error: &error) { _, outStatus in
+            if fed {
+                outStatus.pointee = .endOfStream
+                return nil
+            }
+            fed = true
+            outStatus.pointee = .haveData
+            return inputBuffer
+        }
+
+        guard error == nil, outputBuffer.frameLength > 0, let out = outputBuffer.floatChannelData else {
+            return linearResample(samples, from: sourceRate, to: targetRate)
+        }
+
+        return Array(UnsafeBufferPointer(start: out[0], count: Int(outputBuffer.frameLength)))
     }
 
-    private func resample(_ samples: [Float], from: Int, to: Int) -> [Float] {
+    private func linearResample(_ samples: [Float], from: Double, to: Double) -> [Float] {
         guard from != to else { return samples }
 
-        let ratio = Double(from) / Double(to)
+        let ratio = from / to
         let outputLength = Int(Double(samples.count) / ratio)
         var output = [Float]()
         output.reserveCapacity(outputLength)

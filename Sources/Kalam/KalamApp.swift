@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import Combine
 
 @main
 struct KalamApp: App {
@@ -17,7 +18,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var statusItem: NSStatusItem?
     var popover: NSPopover?
     var mainWindow: NSWindow?
-    private var flashTimer: Timer?
+    private var cancellables = Set<AnyCancellable>()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Create menu bar item
@@ -38,13 +39,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 .environmentObject(AppState.shared)
         )
 
-        // Set up notification observer for flashing icon
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(flashIcon),
-            name: NSNotification.Name("FlashMenuBarIcon"),
-            object: nil
-        )
+        // Menu bar icon mirrors app state: red while recording, tinted while
+        // transcribing — glanceable status without opening the popover.
+        AppState.shared.$isRecording
+            .combineLatest(AppState.shared.$isProcessing)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] recording, processing in
+                self?.updateStatusIcon(recording: recording, processing: processing)
+            }
+            .store(in: &cancellables)
 
         // Initialize app state (downloads model if needed, starts hotkey monitoring)
         Task {
@@ -52,25 +55,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    @objc func flashIcon() {
+    private func updateStatusIcon(recording: Bool, processing: Bool) {
         guard let button = statusItem?.button else { return }
 
-        var flashCount = 0
-        flashTimer?.invalidate()
-
-        flashTimer = Timer.scheduledTimer(withTimeInterval: 0.2, repeats: true) { timer in
-            flashCount += 1
-
-            if flashCount % 2 == 0 {
-                button.image = NSImage(systemSymbolName: "waveform", accessibilityDescription: AppBrand.displayName)
-            } else {
-                button.image = NSImage(systemSymbolName: "waveform.circle.fill", accessibilityDescription: "Recording")
-            }
-
-            if flashCount >= 6 {
-                timer.invalidate()
-                button.image = NSImage(systemSymbolName: "waveform", accessibilityDescription: AppBrand.displayName)
-            }
+        if recording {
+            button.image = NSImage(systemSymbolName: "record.circle.fill", accessibilityDescription: "Recording")
+            button.contentTintColor = .systemRed
+        } else if processing {
+            button.image = NSImage(systemSymbolName: "waveform.circle.fill", accessibilityDescription: "Transcribing")
+            // Ink purple, matching DesignSystem.Colors.ink
+            button.contentTintColor = NSColor(srgbRed: 0.43, green: 0.37, blue: 0.57, alpha: 1.0)
+        } else {
+            button.image = NSImage(systemSymbolName: "waveform", accessibilityDescription: AppBrand.displayName)
+            button.contentTintColor = nil
         }
     }
 

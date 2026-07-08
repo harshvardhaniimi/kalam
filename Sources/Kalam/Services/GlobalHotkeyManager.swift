@@ -31,7 +31,10 @@ class GlobalHotkeyManager: ObservableObject {
     private let keyCode: UInt32 = 49  // Space key
     private let modifiers: UInt32 = UInt32(cmdKey | shiftKey)  // Cmd+Shift
 
-    var onHotkeyTriggered: (() -> Void)?
+    /// Fired when the hotkey goes down / comes back up. AppState combines
+    /// the two into tap-to-toggle vs hold-to-talk semantics.
+    var onHotkeyDown: (() -> Void)?
+    var onHotkeyUp: (() -> Void)?
 
     // Static reference for the C callback
     private static var sharedInstance: GlobalHotkeyManager?
@@ -54,27 +57,37 @@ class GlobalHotkeyManager: ObservableObject {
             return
         }
 
-        // Install event handler
-        var eventType = EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed))
+        // Install event handler for both press and release (hold-to-talk)
+        var eventTypes = [
+            EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed)),
+            EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyReleased))
+        ]
 
         let status = InstallEventHandler(
             GetApplicationEventTarget(),
             { (_, event, _) -> OSStatus in
-                logToFile("🎉 Hotkey triggered!")
-                // Trigger the callback on main thread
-                Task { @MainActor in
-                    GlobalHotkeyManager.sharedInstance?.onHotkeyTriggered?()
+                let kind = GetEventKind(event)
+                if kind == UInt32(kEventHotKeyPressed) {
+                    logToFile("🎉 Hotkey down")
+                    Task { @MainActor in
+                        GlobalHotkeyManager.sharedInstance?.onHotkeyDown?()
+                    }
+                } else if kind == UInt32(kEventHotKeyReleased) {
+                    Task { @MainActor in
+                        GlobalHotkeyManager.sharedInstance?.onHotkeyUp?()
+                    }
                 }
                 return noErr
             },
-            1,
-            &eventType,
+            2,
+            &eventTypes,
             nil,
             &eventHandler
         )
 
         guard status == noErr else {
             print("Failed to install event handler: \(status)")
+            NotificationService.shared.showError("Could not set up the global hotkey (error \(status)). Use the menu bar icon to record.")
             return
         }
 
@@ -96,6 +109,7 @@ class GlobalHotkeyManager: ObservableObject {
         } else {
             logToFile("Failed to register hotkey: \(registerStatus)")
             print("Failed to register hotkey: \(registerStatus)")
+            NotificationService.shared.showError("Could not register Cmd+Shift+Space — another app may already use it. Use the menu bar icon to record.")
             // Clean up event handler if hotkey registration failed
             if let handler = eventHandler {
                 RemoveEventHandler(handler)
@@ -138,7 +152,8 @@ import Foundation
 class GlobalHotkeyManager: ObservableObject {
     @Published var isEnabled = false
 
-    var onHotkeyTriggered: (() -> Void)?
+    var onHotkeyDown: (() -> Void)?
+    var onHotkeyUp: (() -> Void)?
 
     init() {
         print("GlobalHotkeyManager disabled (App Store build)")

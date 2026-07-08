@@ -10,6 +10,8 @@ struct DesignSystem {
         // Primary
         static let primary = Color(hex: "6B7280")
         static let accent = Color(hex: "8B7FA8")
+        // Deeper "ink" purple — enough contrast to carry white button text
+        static let ink = Color(hex: "6E5F92")
 
         // Backgrounds
         static let backgroundLight = Color(hex: "FAFAF9")
@@ -48,8 +50,11 @@ struct DesignSystem {
         static let footnote = Font.system(size: 13, weight: .regular, design: .default)
         static let caption = Font.system(size: 12, weight: .regular, design: .default)
 
-        // Monospace for transcriptions
-        static let transcription = Font.system(size: 15, weight: .regular, design: .monospaced)
+        // Transcript text. Must stay the default system design: SF Pro and the
+        // system Devanagari face are metrically harmonized, so mixed
+        // Hindi+English reads as one voice. Monospace has no Devanagari and
+        // splices in a mismatched fallback — never use it here.
+        static let transcription = Font.system(size: 17, weight: .regular, design: .default)
     }
 
     // MARK: - Spacing
@@ -113,14 +118,18 @@ extension Color {
 // MARK: - Custom Button Styles
 
 struct PrimaryButtonStyle: ButtonStyle {
+    var tint: Color = DesignSystem.Colors.ink
+    @Environment(\.isEnabled) private var isEnabled
+
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(DesignSystem.Typography.headline)
             .foregroundColor(.white)
             .padding(.horizontal, DesignSystem.Spacing.lg)
             .padding(.vertical, DesignSystem.Spacing.md)
-            .background(DesignSystem.Colors.accent)
+            .background(tint)
             .cornerRadius(DesignSystem.CornerRadius.md)
+            .opacity(isEnabled ? 1.0 : 0.5)
             .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
             .animation(DesignSystem.Animation.quick, value: configuration.isPressed)
     }

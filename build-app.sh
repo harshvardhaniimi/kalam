@@ -84,12 +84,25 @@ cat > "$CONTENTS_DIR/Info.plist" << PLIST
 </plist>
 PLIST
 
-# Code sign the app
+# Code sign the app.
+# A STABLE identity is required for macOS permissions (Accessibility,
+# Microphone) to survive rebuilds — ad-hoc signatures change every build
+# and silently invalidate the TCC grants. See signing/README.md.
+if [ -z "${CODESIGN_IDENTITY:-}" ] && security find-identity -v -p codesigning 2>/dev/null | grep -q "Kalam Dev Signing"; then
+    CODESIGN_IDENTITY="Kalam Dev Signing"
+fi
+
 if [ -n "${CODESIGN_IDENTITY:-}" ]; then
     echo "🔏 Code signing with identity: ${CODESIGN_IDENTITY}"
-    codesign --force --deep --options runtime --sign "${CODESIGN_IDENTITY}" "$APP_DIR"
+    # Hardened runtime (--options runtime) blocks microphone access unless the
+    # audio-input entitlement is present — never sign without it.
+    codesign --force --deep --options runtime \
+        --entitlements "${SCRIPT_DIR}/Kalam-direct.entitlements" \
+        --sign "${CODESIGN_IDENTITY}" "$APP_DIR"
 else
-    echo "🔏 Code signing (ad-hoc)..."
+    echo "⚠️  No stable signing identity — falling back to AD-HOC signing."
+    echo "   Accessibility/Microphone grants will break on every rebuild."
+    echo "   One-time fix: see signing/README.md"
     codesign --force --deep --sign - "$APP_DIR"
 fi
 

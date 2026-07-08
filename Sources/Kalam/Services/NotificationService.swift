@@ -38,11 +38,8 @@ class NotificationService: ObservableObject {
     }
 
     func showRecordingStarted() {
-        // Play system sound
+        // Play system sound (the menu bar icon turning red is the visual cue)
         NSSound.beep()
-
-        // Visual feedback - flash menu bar icon
-        flashMenuBarIcon()
 
         // Notification (silent fail if not authorized)
         guard notificationsAuthorized else { return }
@@ -103,9 +100,5 @@ class NotificationService: ObservableObject {
         )
 
         UNUserNotificationCenter.current().add(request) { _ in }
-    }
-
-    private func flashMenuBarIcon() {
-        NotificationCenter.default.post(name: NSNotification.Name("FlashMenuBarIcon"), object: nil)
     }
 }

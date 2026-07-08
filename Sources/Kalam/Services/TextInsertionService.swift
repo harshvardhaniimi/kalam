@@ -3,20 +3,32 @@ import Cocoa
 import ApplicationServices
 #endif
 
+@MainActor
 class TextInsertionService {
     static let shared = TextInsertionService()
 
     private init() {}
 
-    /// Insert text at the current cursor position in the focused application
+    /// Insert text at the current cursor position in the focused application.
+    /// The text is always placed on the clipboard first, so even if the
+    /// simulated paste cannot run the user can paste manually with Cmd+V.
     func insertTextAtCursor(_ text: String) {
-        // First, copy to clipboard
         copyToClipboard(text)
 
         #if !APP_STORE_BUILD
+        // CGEvent posting is silently discarded by macOS unless this exact
+        // binary is trusted for Accessibility. A stale grant (e.g. after the
+        // app was rebuilt) also fails silently — so check, don't assume.
+        guard AXIsProcessTrusted() else {
+            promptForAccessibility()
+            NotificationService.shared.showError(
+                "Text copied to clipboard — press Cmd+V to paste. To auto-insert, grant Accessibility to \(AppBrand.displayName) in System Settings → Privacy & Security → Accessibility (remove the old entry first if it's already listed)."
+            )
+            return
+        }
+
         // Small delay to ensure clipboard is set
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            // Simulate Cmd+V to paste
             self.simulatePaste()
         }
         #endif
@@ -29,6 +41,12 @@ class TextInsertionService {
     }
 
     #if !APP_STORE_BUILD
+    /// Ask macOS to show the Accessibility permission prompt/panel.
+    private func promptForAccessibility() {
+        let options: NSDictionary = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true]
+        AXIsProcessTrustedWithOptions(options)
+    }
+
     private func simulatePaste() {
         // Check if there's a frontmost application
         guard NSWorkspace.shared.frontmostApplication != nil else {
@@ -61,43 +79,6 @@ class TextInsertionService {
         cmdUp?.post(tap: .cghidEventTap)
 
         print("Simulated paste (Cmd+V)")
-    }
-
-    /// Alternative method using Accessibility API (more precise but requires more permissions)
-    func insertTextUsingAccessibility(_ text: String) {
-        let systemWideElement = AXUIElementCreateSystemWide()
-
-        var focusedElement: CFTypeRef?
-        let result = AXUIElementCopyAttributeValue(
-            systemWideElement,
-            kAXFocusedUIElementAttribute as CFString,
-            &focusedElement
-        )
-
-        guard result == .success, let focusedElement = focusedElement else {
-            print("Could not get focused element, falling back to paste")
-            insertTextAtCursor(text)
-            return
-        }
-
-        let element = focusedElement as! AXUIElement
-
-        // Try to set the selected text
-        var selectedRange: CFTypeRef?
-        AXUIElementCopyAttributeValue(
-            element,
-            kAXSelectedTextRangeAttribute as CFString,
-            &selectedRange
-        )
-
-        // Insert text at selection
-        AXUIElementSetAttributeValue(
-            element,
-            kAXSelectedTextAttribute as CFString,
-            text as CFTypeRef
-        )
-
-        print("Inserted text using Accessibility API")
     }
 
     func checkAccessibilityPermissions() -> Bool {

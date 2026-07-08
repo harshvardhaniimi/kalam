@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kalam - Local Speech-to-Text for macOS</title>
-    <meta name="description" content="A beautiful, native macOS app for speech-to-text transcription. Completely local, private, and free.">
+    <title>Kalam - Speech-to-Text for macOS, Hindi + English</title>
+    <meta name="description" content="A native macOS dictation app built for Hindi + English. Private by default with on-device Whisper; optional Sarvam AI engine for the best Hindi accuracy.">
     <style>
         :root {
             --bg: #fafafa;
@@ -293,74 +293,75 @@
     <div class="container">
         <header>
             <div class="icon">🎤</div>
-            <h1>Kalam</h1>
-            <p class="tagline">Local speech-to-text for macOS.<br>Private, fast, and free.</p>
+            <h1>Kalam <span style="color: var(--accent); font-size: 0.6em; font-weight: 500;">कलम</span></h1>
+            <p class="tagline">Speech-to-text for macOS, built for Hindi + English.<br>Private by default, fast, and free.</p>
             <div class="cta-group">
-                <a href="https://github.com/harshvardhaniimi/whisper-mac/releases/latest/download/Kalam.zip" class="download-btn">
+                <a href="https://github.com/harshvardhaniimi/kalam/releases/latest/download/Kalam.zip" class="download-btn">
                     <span>⬇️</span> Download for Mac
                 </a>
-                <span class="version">macOS 13.0+ &bull; Apple Silicon &amp; Intel</span>
+                <span class="version">macOS 14.0+ &bull; Apple Silicon</span>
             </div>
         </header>
 
         <div class="how-it-works">
             <h2 class="section-title">How It Works</h2>
             <div class="steps">
-                <div class="step">Press <strong>Cmd+Shift+Space</strong></div>
+                <div class="step">Hold <strong>Cmd+Shift+Space</strong></div>
                 <span class="step-arrow">→</span>
-                <div class="step">Speak</div>
+                <div class="step">Speak Hindi, English, or both</div>
                 <span class="step-arrow">→</span>
-                <div class="step">Press <strong>Cmd+Shift+Space</strong></div>
+                <div class="step">Release</div>
                 <span class="step-arrow">→</span>
                 <div class="step">Text appears at cursor</div>
             </div>
+            <p class="note" style="margin-top: 12px;">Prefer toggling? Tap the hotkey to start, tap again to stop. A floating indicator shows elapsed time while you record.</p>
         </div>
 
         <h2 class="section-title">Features</h2>
         <div class="features">
             <div class="feature">
+                <div class="feature-icon">🇮🇳</div>
+                <h3>Hindi + English</h3>
+                <p>Optional Sarvam AI engine (Saaras v3) nails Hindi and code-mixed Hinglish. Local Whisper Large Turbo covers offline use.</p>
+            </div>
+            <div class="feature">
                 <div class="feature-icon">🔒</div>
-                <h3>100% Local</h3>
-                <p>All processing on your Mac. Your voice never leaves your device.</p>
+                <h3>Private by Default</h3>
+                <p>The default local engine keeps your voice on your Mac. The cloud engine is opt-in and clearly labeled.</p>
             </div>
             <div class="feature">
                 <div class="feature-icon">⌨️</div>
-                <h3>Global Hotkey</h3>
-                <p>Press Cmd+Shift+Space from anywhere. No special permissions needed.</p>
+                <h3>Tap or Hold</h3>
+                <p>Tap Cmd+Shift+Space to toggle, or hold it like a walkie-talkie. Works from any app.</p>
             </div>
             <div class="feature">
                 <div class="feature-icon">🎯</div>
                 <h3>Auto-Insert</h3>
-                <p>Text appears at your cursor and copies to clipboard.</p>
+                <p>Text appears at your cursor and copies to clipboard. Auto-stops after silence so nothing runs away.</p>
             </div>
             <div class="feature">
-                <div class="feature-icon">🌍</div>
-                <h3>50+ Languages</h3>
-                <p>English, Spanish, French, German, Chinese, Japanese, and more.</p>
-            </div>
-            <div class="feature">
-                <div class="feature-icon">📁</div>
-                <h3>File Transcription</h3>
-                <p>Drag &amp; drop audio files for batch transcription.</p>
+                <div class="feature-icon">📖</div>
+                <h3>Personal Dictionary</h3>
+                <p>Teach it names, acronyms, and course codes once — every transcript comes out right.</p>
             </div>
             <div class="feature">
                 <div class="feature-icon">💾</div>
-                <h3>History</h3>
-                <p>All transcriptions saved with full-text search.</p>
+                <h3>History &amp; Files</h3>
+                <p>Searchable transcription history, plus drag &amp; drop audio file transcription.</p>
             </div>
         </div>
 
         <div class="install-section">
             <h2>Quick Install</h2>
             <p>Run this in Terminal:</p>
-            <code class="code-block">curl -sL https://raw.githubusercontent.com/harshvardhaniimi/whisper-mac/main/install.sh | bash</code>
+            <code class="code-block">curl -sL https://raw.githubusercontent.com/harshvardhaniimi/kalam/main/install.sh | bash</code>
             <p class="note">Then right-click the app in Applications → "Open" (first time only)</p>
         </div>
 
         <div class="install-section">
             <h2>Manual Install</h2>
             <ol>
-                <li><a href="https://github.com/harshvardhaniimi/whisper-mac/releases/latest/download/Kalam.zip">Download Kalam.zip</a> and extract it</li>
+                <li><a href="https://github.com/harshvardhaniimi/kalam/releases/latest/download/Kalam.zip">Download Kalam.zip</a> and extract it</li>
                 <li>Move <strong>Kalam.app</strong> to Applications</li>
                 <li>Open Terminal and run: <code>xattr -cr /Applications/Kalam.app</code></li>
                 <li>Right-click the app → "Open"</li>
@@ -379,28 +380,31 @@
                     <span style="color: var(--text-secondary); font-size: 0.85rem;">System Settings → Privacy &amp; Security → Accessibility</span></li>
             </ul>
             <div class="info-box">
-                <strong>Good news!</strong> The global hotkey (Cmd+Shift+Space) works without any special permissions. Accessibility is only needed if you want text auto-inserted at your cursor.
+                <strong>Good news!</strong> The global hotkey (Cmd+Shift+Space) works without any special permissions, and you only grant Microphone/Accessibility once — grants persist across app updates.
+            </div>
+            <div class="info-box" style="margin-top: 12px;">
+                <strong>Dictating in Hindi?</strong> Get a free API key at <a href="https://dashboard.sarvam.ai">dashboard.sarvam.ai</a>, paste it in Settings → Transcription Engine, and pick Sarvam AI. Without a key, Kalam uses on-device Whisper — download the Large Turbo model for usable Hindi.
             </div>
         </div>
 
         <div class="install-section" style="text-align: center;">
             <h2>Uninstall</h2>
             <p>To completely remove Kalam:</p>
-            <code class="code-block">curl -sL https://raw.githubusercontent.com/harshvardhaniimi/whisper-mac/main/uninstall.sh | bash</code>
+            <code class="code-block">curl -sL https://raw.githubusercontent.com/harshvardhaniimi/kalam/main/uninstall.sh | bash</code>
         </div>
 
         <div class="permissions" style="text-align: center;">
             <h2>Feedback Welcome!</h2>
             <p>This app was <strong>entirely vibe coded</strong> with <a href="https://claude.ai/code">Claude Code</a>.</p>
-            <p style="margin-top: 12px;">Found a bug? Have a feature idea? <a href="https://github.com/harshvardhaniimi/whisper-mac/issues">Open an issue</a> or submit a PR!</p>
+            <p style="margin-top: 12px;">Found a bug? Have a feature idea? <a href="https://github.com/harshvardhaniimi/kalam/issues">Open an issue</a> or submit a PR!</p>
         </div>
 
         <footer>
             <p>
-                Created with <a href="https://claude.ai/code">Claude Code</a> by <strong>Dr. Harshvardhan</strong>
+                Created with <a href="https://claude.ai/code">Claude Code</a> by <a href="https://harsh17.in"><strong>Dr. Harshvardhan</strong></a> &bull; <a href="mailto:hello@harsh17.in">hello@harsh17.in</a>
             </p>
             <p style="margin-top: 8px;">
-                Open source on <a href="https://github.com/harshvardhaniimi/whisper-mac">GitHub</a> &bull; MIT License
+                Open source on <a href="https://github.com/harshvardhaniimi/kalam">GitHub</a> &bull; MIT License
             </p>
         </footer>
     </div>

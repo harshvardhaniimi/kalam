@@ -4,6 +4,7 @@ struct MainView: View {
     @EnvironmentObject var appState: AppState
     @State private var showSettings = false
     @State private var showHistory = false
+    @State private var justCopied = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -40,17 +41,27 @@ struct MainView: View {
         .background(Color(NSColor.windowBackgroundColor))
     }
 
+    private var isErrorTranscription: Bool {
+        appState.currentTranscription.hasPrefix("Error:")
+    }
+
     // MARK: - Header
 
     private var header: some View {
-        HStack {
+        HStack(spacing: DesignSystem.Spacing.sm) {
             Image(systemName: "waveform")
                 .font(.system(size: 20, weight: .semibold))
                 .foregroundColor(DesignSystem.Colors.accent)
 
-            Text(AppBrand.displayName)
-                .font(DesignSystem.Typography.title3)
-                .foregroundColor(DesignSystem.Colors.textPrimary)
+            // Bilingual wordmark — the app's whole point in two scripts
+            HStack(alignment: .firstTextBaseline, spacing: DesignSystem.Spacing.sm) {
+                Text(AppBrand.displayName)
+                    .font(DesignSystem.Typography.title3)
+                    .foregroundColor(DesignSystem.Colors.textPrimary)
+                Text("कलम")
+                    .font(.system(size: 15))
+                    .foregroundColor(DesignSystem.Colors.accent)
+            }
 
             Spacer()
 
@@ -58,6 +69,7 @@ struct MainView: View {
                 Image(systemName: "clock")
             }
             .buttonStyle(IconButtonStyle())
+            .help("History")
             .popover(isPresented: $showHistory) {
                 HistoryView()
                     .environmentObject(appState)
@@ -68,6 +80,7 @@ struct MainView: View {
                 Image(systemName: "gearshape")
             }
             .buttonStyle(IconButtonStyle())
+            .help("Settings")
             .popover(isPresented: $showSettings) {
                 SettingsView()
                     .environmentObject(appState)
@@ -77,9 +90,10 @@ struct MainView: View {
             Button(action: {
                 NSApplication.shared.terminate(nil)
             }) {
-                Image(systemName: "xmark.circle")
+                Image(systemName: "power")
             }
             .buttonStyle(IconButtonStyle())
+            .help("Quit \(AppBrand.displayName)")
         }
         .padding(DesignSystem.Spacing.md)
     }
@@ -88,22 +102,34 @@ struct MainView: View {
 
     private var emptyStateView: some View {
         VStack(spacing: DesignSystem.Spacing.lg) {
-            Image(systemName: "mic.circle")
-                .font(.system(size: 64))
-                .foregroundColor(DesignSystem.Colors.primary.opacity(0.3))
+            ZStack {
+                Circle()
+                    .fill(DesignSystem.Colors.accent.opacity(0.12))
+                    .frame(width: 88, height: 88)
+                Image(systemName: "mic")
+                    .font(.system(size: 36, weight: .medium))
+                    .foregroundColor(DesignSystem.Colors.ink)
+            }
 
             Text("Ready to transcribe")
                 .font(DesignSystem.Typography.title3)
-                .foregroundColor(DesignSystem.Colors.textSecondary)
+                .foregroundColor(DesignSystem.Colors.textPrimary)
 
             #if APP_STORE_BUILD
-            Text("Click record or use Cmd+V to paste")
-                .font(DesignSystem.Typography.callout)
+            Text("Click Record, speak in Hindi, English, or both")
+                .font(DesignSystem.Typography.subheadline)
                 .foregroundColor(DesignSystem.Colors.textSecondary)
             #else
-            Text("Click record or press Cmd+Shift+Space")
-                .font(DesignSystem.Typography.callout)
-                .foregroundColor(DesignSystem.Colors.textSecondary)
+            VStack(spacing: DesignSystem.Spacing.sm) {
+                HStack(spacing: DesignSystem.Spacing.xs) {
+                    KeyCap("⌘")
+                    KeyCap("⇧")
+                    KeyCap("Space")
+                }
+                Text("tap to toggle or hold to talk — Hindi, English, or both")
+                    .font(DesignSystem.Typography.footnote)
+                    .foregroundColor(DesignSystem.Colors.textSecondary)
+            }
             #endif
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -114,21 +140,53 @@ struct MainView: View {
             ProgressView()
                 .scaleEffect(1.5)
 
-            Text("Transcribing...")
-                .font(DesignSystem.Typography.headline)
-                .foregroundColor(DesignSystem.Colors.textSecondary)
+            VStack(spacing: DesignSystem.Spacing.xs) {
+                Text("Transcribing…")
+                    .font(DesignSystem.Typography.headline)
+                    .foregroundColor(DesignSystem.Colors.textPrimary)
+                Text("with \(engineName)")
+                    .font(DesignSystem.Typography.footnote)
+                    .foregroundColor(DesignSystem.Colors.textSecondary)
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private var transcriptionView: some View {
         ScrollView {
-            Text(appState.currentTranscription)
-                .font(DesignSystem.Typography.transcription)
-                .foregroundColor(DesignSystem.Colors.textPrimary)
-                .padding(DesignSystem.Spacing.md)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .textSelection(.enabled)
+            VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
+                if isErrorTranscription {
+                    Label {
+                        Text(appState.currentTranscription)
+                            .font(DesignSystem.Typography.subheadline)
+                    } icon: {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                    }
+                    .foregroundColor(DesignSystem.Colors.error)
+                } else {
+                    Text(appState.currentTranscription)
+                        .font(DesignSystem.Typography.transcription)
+                        .lineSpacing(6)
+                        .foregroundColor(DesignSystem.Colors.textPrimary)
+                        .textSelection(.enabled)
+                }
+            }
+            .padding(DesignSystem.Spacing.md)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(
+                RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.md)
+                    .fill(isErrorTranscription
+                          ? DesignSystem.Colors.error.opacity(0.06)
+                          : DesignSystem.Colors.accent.opacity(0.06))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.md)
+                            .strokeBorder(isErrorTranscription
+                                          ? DesignSystem.Colors.error.opacity(0.15)
+                                          : DesignSystem.Colors.accent.opacity(0.15),
+                                          lineWidth: 1)
+                    )
+            )
+            .padding(DesignSystem.Spacing.md)
         }
         .frame(maxHeight: .infinity)
     }
@@ -149,9 +207,9 @@ struct MainView: View {
             }) {
                 HStack(spacing: DesignSystem.Spacing.sm) {
                     if appState.isRecording {
-                        Image(systemName: "stop.circle.fill")
-                            .font(.system(size: 20))
-                        Text("Stop Recording")
+                        Image(systemName: "stop.fill")
+                            .font(.system(size: 16))
+                        Text("Stop & Transcribe")
                     } else {
                         Image(systemName: "record.circle")
                             .font(.system(size: 20))
@@ -160,17 +218,24 @@ struct MainView: View {
                 }
                 .frame(maxWidth: .infinity)
             }
-            .buttonStyle(PrimaryButtonStyle())
+            .buttonStyle(PrimaryButtonStyle(tint: appState.isRecording
+                                            ? DesignSystem.Colors.recordingRed
+                                            : DesignSystem.Colors.ink))
             .disabled(appState.isProcessing)
 
-            // Copy button (only show when there's transcription)
-            if !appState.currentTranscription.isEmpty {
+            // Copy button (only show when there's a real transcription)
+            if !appState.currentTranscription.isEmpty && !isErrorTranscription {
                 Button(action: {
                     appState.copyToClipboard()
+                    justCopied = true
+                    Task {
+                        try? await Task.sleep(nanoseconds: 1_400_000_000)
+                        justCopied = false
+                    }
                 }) {
                     HStack(spacing: DesignSystem.Spacing.sm) {
-                        Image(systemName: "doc.on.clipboard")
-                        Text("Copy to Clipboard")
+                        Image(systemName: justCopied ? "checkmark" : "doc.on.clipboard")
+                        Text(justCopied ? "Copied" : "Copy transcript")
                     }
                     .frame(maxWidth: .infinity)
                 }
@@ -183,28 +248,45 @@ struct MainView: View {
         .padding(DesignSystem.Spacing.md)
     }
 
+    private var engineName: String {
+        switch appState.transcriptionEngine {
+        case .sarvam:
+            return "Sarvam Saaras"
+        case .local:
+            return "Whisper \(appState.selectedModel.displayName)"
+        }
+    }
+
+    private var engineDetail: String {
+        switch appState.transcriptionEngine {
+        case .sarvam:
+            return "Sarvam Saaras · \(appState.sarvamMode == .codemix ? "Hinglish" : "native script")"
+        case .local:
+            let language = appState.selectedLanguage == "auto"
+                ? "auto"
+                : appState.selectedLanguage.uppercased()
+            return "Whisper \(appState.selectedModel.displayName) · \(language)"
+        }
+    }
+
     private var statusBar: some View {
         HStack {
-            // Model info
-            Text("Model: \(appState.selectedModel.displayName)")
+            Text(engineDetail)
                 .font(DesignSystem.Typography.caption)
                 .foregroundColor(DesignSystem.Colors.textSecondary)
 
             Spacer()
 
-            // Language
-            Text("Language: \(appState.selectedLanguage)")
-                .font(DesignSystem.Typography.caption)
-                .foregroundColor(DesignSystem.Colors.textSecondary)
-
-            Spacer()
-
-            // Duration
             if appState.isRecording {
-                Text(formatDuration(appState.recordingDuration))
-                    .font(DesignSystem.Typography.caption)
-                    .foregroundColor(DesignSystem.Colors.recordingRed)
-                    .monospacedDigit()
+                HStack(spacing: DesignSystem.Spacing.xs) {
+                    Circle()
+                        .fill(DesignSystem.Colors.recordingRed)
+                        .frame(width: 7, height: 7)
+                    Text(formatDuration(appState.recordingDuration))
+                        .font(DesignSystem.Typography.caption)
+                        .foregroundColor(DesignSystem.Colors.recordingRed)
+                        .monospacedDigit()
+                }
             }
         }
     }
@@ -213,5 +295,30 @@ struct MainView: View {
         let minutes = Int(duration) / 60
         let seconds = Int(duration) % 60
         return String(format: "%02d:%02d", minutes, seconds)
+    }
+}
+
+/// A small keyboard-key chip, e.g. ⌘ ⇧ Space.
+private struct KeyCap: View {
+    let label: String
+
+    init(_ label: String) {
+        self.label = label
+    }
+
+    var body: some View {
+        Text(label)
+            .font(.system(size: 13, weight: .medium, design: .rounded))
+            .foregroundColor(DesignSystem.Colors.textPrimary)
+            .padding(.horizontal, 9)
+            .padding(.vertical, 5)
+            .background(
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(Color.gray.opacity(0.1))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 6)
+                            .strokeBorder(Color.gray.opacity(0.3), lineWidth: 1)
+                    )
+            )
     }
 }

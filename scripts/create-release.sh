@@ -80,12 +80,21 @@ cat > "${BUILD_DIR}/${APP_NAME}.app/Contents/Info.plist" << PLIST
 </plist>
 PLIST
 
-# Code sign the app
+# Code sign the app (same rules as build-app.sh: stable identity when
+# available, and hardened runtime REQUIRES the audio-input entitlement or
+# microphone access fails silently)
+if [ -z "${CODESIGN_IDENTITY:-}" ] && security find-identity -v -p codesigning 2>/dev/null | grep -q "Kalam Dev Signing"; then
+    CODESIGN_IDENTITY="Kalam Dev Signing"
+fi
+
 if [ -n "${CODESIGN_IDENTITY:-}" ]; then
     echo "🔏 Code signing with identity: ${CODESIGN_IDENTITY}"
-    codesign --force --deep --options runtime --sign "${CODESIGN_IDENTITY}" "${BUILD_DIR}/${APP_NAME}.app"
+    codesign --force --deep --options runtime \
+        --entitlements "${PROJECT_ROOT}/Kalam-direct.entitlements" \
+        --sign "${CODESIGN_IDENTITY}" "${BUILD_DIR}/${APP_NAME}.app"
 else
-    echo "🔏 Code signing (ad-hoc)..."
+    echo "⚠️  No stable signing identity — falling back to AD-HOC signing."
+    echo "   See signing/README.md"
     codesign --force --deep --sign - "${BUILD_DIR}/${APP_NAME}.app"
 fi
 

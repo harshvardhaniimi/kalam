@@ -1,6 +1,7 @@
 import SwiftUI
 import AppKit
 
+@MainActor
 class RecordingIndicatorWindow: NSObject {
     static let shared = RecordingIndicatorWindow()
 
@@ -13,40 +14,39 @@ class RecordingIndicatorWindow: NSObject {
     }
 
     func show() {
-        DispatchQueue.main.async {
-            self.createAndShowWindow()
-        }
+        createAndShowWindow()
     }
 
     func hide() {
-        DispatchQueue.main.async {
-            self.positionTimer?.invalidate()
-            self.positionTimer = nil
+        positionTimer?.invalidate()
+        positionTimer = nil
 
-            // Fade out animation
-            NSAnimationContext.runAnimationGroup({ context in
-                context.duration = 0.2
-                self.window?.animator().alphaValue = 0
-            }, completionHandler: {
-                self.window?.orderOut(nil)
-                self.window = nil
-                self.hostingView = nil
-            })
-        }
+        // Fade out animation
+        NSAnimationContext.runAnimationGroup({ context in
+            context.duration = 0.2
+            self.window?.animator().alphaValue = 0
+        }, completionHandler: {
+            Task { @MainActor [weak self] in
+                self?.window?.orderOut(nil)
+                self?.window = nil
+                self?.hostingView = nil
+            }
+        })
     }
 
     private func createAndShowWindow() {
         // Get cursor position
         let mouseLocation = NSEvent.mouseLocation
 
-        // Create the SwiftUI view
-        let indicatorView = RecordingIndicatorView()
+        // Live view bound to app state: elapsed time + real audio level
+        let indicatorView = RecordingIndicatorView(appState: AppState.shared)
         hostingView = NSHostingView(rootView: indicatorView)
-        hostingView?.frame = NSRect(x: 0, y: 0, width: 140, height: 50)
+        let size = NSSize(width: 190, height: 50)
+        hostingView?.frame = NSRect(origin: .zero, size: size)
 
         // Create borderless, transparent window
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 140, height: 50),
+            contentRect: NSRect(origin: .zero, size: size),
             styleMask: [.borderless],
             backing: .buffered,
             defer: false
@@ -82,7 +82,9 @@ class RecordingIndicatorWindow: NSObject {
 
         // Update position periodically to follow cursor
         positionTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
-            self?.updatePosition()
+            Task { @MainActor [weak self] in
+                self?.updatePosition()
+            }
         }
     }
 
@@ -103,11 +105,11 @@ class RecordingIndicatorWindow: NSObject {
 }
 
 struct RecordingIndicatorView: View {
+    @ObservedObject var appState: AppState
     @State private var isPulsing = false
-    @State private var audioLevel: CGFloat = 0.3
 
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 10) {
             // Mic icon with pulse
             ZStack {
                 // Outer pulse ring
@@ -136,20 +138,29 @@ struct RecordingIndicatorView: View {
             }
 
             // Text
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Recording")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(.white)
+            VStack(alignment: .leading, spacing: 3) {
+                HStack(spacing: 6) {
+                    Text("Recording")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(.white)
 
-                // Audio level bars
+                    // Elapsed time, live
+                    Text(formattedDuration)
+                        .font(.system(size: 12, weight: .semibold))
+                        .monospacedDigit()
+                        .foregroundColor(.white.opacity(0.85))
+                }
+
+                // Audio level bars driven by the real input level
                 HStack(spacing: 2) {
                     ForEach(0..<5) { i in
                         RoundedRectangle(cornerRadius: 1)
                             .fill(Color.white.opacity(0.9))
                             .frame(width: 4, height: barHeight(for: i))
+                            .animation(.easeInOut(duration: 0.1), value: appState.audioLevel)
                     }
                 }
-                .frame(height: 12)
+                .frame(height: 12, alignment: .center)
             }
         }
         .padding(.horizontal, 12)
@@ -166,26 +177,20 @@ struct RecordingIndicatorView: View {
             ) {
                 isPulsing = true
             }
-
-            // Animate audio levels
-            animateAudioLevels()
         }
+    }
+
+    private var formattedDuration: String {
+        let total = Int(appState.recordingDuration)
+        return String(format: "%d:%02d", total / 60, total % 60)
     }
 
     private func barHeight(for index: Int) -> CGFloat {
-        let baseHeight: CGFloat = 4
-        let maxExtra: CGFloat = 8
-        let phase = CGFloat(index) * 0.2
-        let level = (sin(audioLevel * .pi * 2 + phase) + 1) / 2
-        return baseHeight + level * maxExtra
-    }
-
-    private func animateAudioLevels() {
-        Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
-            withAnimation(.easeInOut(duration: 0.1)) {
-                audioLevel = CGFloat.random(in: 0.2...1.0)
-            }
-        }
+        let level = CGFloat(appState.audioLevel)
+        // Stagger the bars so they read as an equalizer, not a block
+        let phase = CGFloat(index) * 0.9
+        let variation = (sin(level * 10 + phase) + 1) / 2
+        let intensity = min(1.0, level * 0.7 + variation * 0.3 * level)
+        return 4 + intensity * 8
     }
 }
-

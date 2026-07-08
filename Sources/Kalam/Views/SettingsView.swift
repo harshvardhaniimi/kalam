@@ -2,6 +2,8 @@ import SwiftUI
 
 struct SettingsView: View {
     @EnvironmentObject var appState: AppState
+    @State private var newRuleFrom = ""
+    @State private var newRuleTo = ""
 
     private var appVersionLabel: String {
         let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0"
@@ -25,12 +27,22 @@ struct SettingsView: View {
 
             ScrollView {
                 VStack(spacing: DesignSystem.Spacing.xl) {
+                    // General section
+                    generalSection
+
+                    Divider()
+
                     #if !APP_STORE_BUILD
                     // Hotkey section
                     hotkeySection
 
                     Divider()
                     #endif
+
+                    // Engine section
+                    engineSection
+
+                    Divider()
 
                     // Models section
                     modelSection
@@ -42,6 +54,11 @@ struct SettingsView: View {
 
                     Divider()
 
+                    // Personal dictionary section
+                    dictionarySection
+
+                    Divider()
+
                     // About section
                     aboutSection
                 }
@@ -49,6 +66,28 @@ struct SettingsView: View {
             }
         }
         .frame(width: 500, height: 500)
+    }
+
+    // MARK: - General Section
+
+    private var generalSection: some View {
+        VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
+            Text("General")
+                .font(DesignSystem.Typography.headline)
+                .foregroundColor(DesignSystem.Colors.textPrimary)
+
+            Toggle(isOn: Binding(
+                get: { appState.launchAtLogin },
+                set: { appState.setLaunchAtLogin($0) }
+            )) {
+                Text("Start \(AppBrand.displayName) at login")
+                    .font(DesignSystem.Typography.body)
+            }
+
+            Text("Recording stops by itself after \(Int(AudioCaptureService.silenceTimeout / 60)) minutes of silence or \(Int(AudioCaptureService.maxRecordingDuration / 60)) minutes total — the transcript is kept and copied to the clipboard.")
+                .font(DesignSystem.Typography.caption)
+                .foregroundColor(DesignSystem.Colors.textSecondary)
+        }
     }
 
     #if !APP_STORE_BUILD
@@ -74,15 +113,11 @@ struct SettingsView: View {
                     .foregroundColor(DesignSystem.Colors.textSecondary)
                     .fontWeight(.semibold)
 
-                Text("• Press Cmd+Shift+Space to start recording")
+                Text("• Tap Cmd+Shift+Space to start, tap again to stop")
                     .font(DesignSystem.Typography.caption)
                     .foregroundColor(DesignSystem.Colors.textSecondary)
 
-                Text("• Speak your message")
-                    .font(DesignSystem.Typography.caption)
-                    .foregroundColor(DesignSystem.Colors.textSecondary)
-
-                Text("• Press Cmd+Shift+Space again to stop and transcribe")
+                Text("• Or hold it down, speak, and release — walkie-talkie style")
                     .font(DesignSystem.Typography.caption)
                     .foregroundColor(DesignSystem.Colors.textSecondary)
 
@@ -96,6 +131,49 @@ struct SettingsView: View {
         }
     }
     #endif
+
+    // MARK: - Engine Section
+
+    private var engineSection: some View {
+        VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
+            Text("Transcription Engine")
+                .font(DesignSystem.Typography.headline)
+                .foregroundColor(DesignSystem.Colors.textPrimary)
+
+            Picker("Engine", selection: $appState.transcriptionEngine) {
+                ForEach(TranscriptionEngine.allCases) { engine in
+                    Text(engine.displayName).tag(engine)
+                }
+            }
+            .pickerStyle(.menu)
+            .labelsHidden()
+
+            if appState.transcriptionEngine == .sarvam {
+                VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
+                    SecureField("Sarvam API key (dashboard.sarvam.ai)", text: $appState.sarvamAPIKey)
+                        .textFieldStyle(.roundedBorder)
+
+                    Picker("Output style", selection: $appState.sarvamMode) {
+                        ForEach(SarvamMode.allCases) { mode in
+                            Text(mode.displayName).tag(mode)
+                        }
+                    }
+                    .pickerStyle(.menu)
+
+                    Text("Sarvam Saaras v3 is markedly more accurate for Hindi and Hinglish than Whisper. Audio is sent to Sarvam's servers; if the request fails, \(AppBrand.displayName) falls back to your local Whisper model automatically.")
+                        .font(DesignSystem.Typography.caption)
+                        .foregroundColor(DesignSystem.Colors.textSecondary)
+                }
+                .padding(DesignSystem.Spacing.sm)
+                .background(DesignSystem.Colors.accent.opacity(0.1))
+                .cornerRadius(DesignSystem.CornerRadius.sm)
+            } else {
+                Text("Local Whisper runs fully on-device. For Hindi + English, use the Large Turbo model — the smaller models are effectively English-only.")
+                    .font(DesignSystem.Typography.caption)
+                    .foregroundColor(DesignSystem.Colors.textSecondary)
+            }
+        }
+    }
 
     // MARK: - Model Section
 
@@ -167,6 +245,79 @@ struct SettingsView: View {
         }
     }
 
+    // MARK: - Personal Dictionary Section
+
+    private var dictionarySection: some View {
+        VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
+            Text("Personal Dictionary")
+                .font(DesignSystem.Typography.headline)
+                .foregroundColor(DesignSystem.Colors.textPrimary)
+
+            Text("Fix words the engines keep getting wrong — names, acronyms, course codes. Corrections apply to every transcript, whole-word and case-insensitive.")
+                .font(DesignSystem.Typography.caption)
+                .foregroundColor(DesignSystem.Colors.textSecondary)
+
+            ForEach(appState.dictionaryRules) { rule in
+                HStack(spacing: DesignSystem.Spacing.sm) {
+                    Text(rule.from)
+                        .font(DesignSystem.Typography.callout)
+                        .foregroundColor(DesignSystem.Colors.textSecondary)
+
+                    Image(systemName: "arrow.right")
+                        .font(.system(size: 11))
+                        .foregroundColor(DesignSystem.Colors.accent)
+
+                    Text(rule.to)
+                        .font(DesignSystem.Typography.callout)
+                        .fontWeight(.medium)
+                        .foregroundColor(DesignSystem.Colors.textPrimary)
+
+                    Spacer()
+
+                    Button(action: {
+                        appState.dictionaryRules.removeAll { $0.id == rule.id }
+                    }) {
+                        Image(systemName: "trash")
+                    }
+                    .buttonStyle(IconButtonStyle())
+                    .help("Remove correction")
+                }
+                .padding(.horizontal, DesignSystem.Spacing.sm)
+                .padding(.vertical, DesignSystem.Spacing.xs)
+                .background(Color.gray.opacity(0.05))
+                .cornerRadius(DesignSystem.CornerRadius.sm)
+            }
+
+            HStack(spacing: DesignSystem.Spacing.sm) {
+                TextField("Heard as…", text: $newRuleFrom)
+                    .textFieldStyle(.roundedBorder)
+
+                Image(systemName: "arrow.right")
+                    .font(.system(size: 11))
+                    .foregroundColor(DesignSystem.Colors.accent)
+
+                TextField("Replace with…", text: $newRuleTo)
+                    .textFieldStyle(.roundedBorder)
+
+                Button("Add") {
+                    addDictionaryRule()
+                }
+                .buttonStyle(SecondaryButtonStyle())
+                .disabled(newRuleFrom.trimmingCharacters(in: .whitespaces).isEmpty
+                          || newRuleTo.trimmingCharacters(in: .whitespaces).isEmpty)
+            }
+        }
+    }
+
+    private func addDictionaryRule() {
+        let from = newRuleFrom.trimmingCharacters(in: .whitespaces)
+        let to = newRuleTo.trimmingCharacters(in: .whitespaces)
+        guard !from.isEmpty, !to.isEmpty else { return }
+        appState.dictionaryRules.append(DictionaryRule(from: from, to: to))
+        newRuleFrom = ""
+        newRuleTo = ""
+    }
+
     // MARK: - About Section
 
     private var aboutSection: some View {
@@ -219,7 +370,9 @@ struct SettingsView: View {
                 }
             }
 
-            Text("All processing happens locally on your device. Your audio never leaves your computer.")
+            Text(appState.transcriptionEngine == .local
+                 ? "All processing happens locally on your device. Your audio never leaves your computer."
+                 : "Sarvam engine selected: recorded audio is sent to Sarvam AI for transcription.")
                 .font(DesignSystem.Typography.caption)
                 .foregroundColor(DesignSystem.Colors.textSecondary)
                 .padding(.top, DesignSystem.Spacing.xs)

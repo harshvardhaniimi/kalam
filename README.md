@@ -1,6 +1,7 @@
 # Kalam 🎤
 
-A beautiful, native macOS app for speech-to-text transcription powered by OpenAI Whisper. Completely local, private, and free.
+A native macOS menu bar app for speech-to-text dictation — built for Hindi + English (including code-mixed Hinglish), and private by default.
+Local transcription runs on-device via OpenAI Whisper; an optional Sarvam AI cloud engine delivers the best Hindi accuracy available.
 
 ![macOS](https://img.shields.io/badge/macOS-14.0+-blue)
 ![Swift](https://img.shields.io/badge/Swift-5.9+-orange)
@@ -8,7 +9,13 @@ A beautiful, native macOS app for speech-to-text transcription powered by OpenAI
 
 ## Features
 
-✨ **Completely Local** - All processing happens on your Mac. No cloud, no subscriptions, no data leaves your computer.
+🔒 **Private by Default** - The local Whisper engine keeps everything on your Mac: no cloud, no telemetry, no subscriptions.
+
+🇮🇳 **Hindi + English, Properly** - Choose the Sarvam AI engine (Saaras v3) for the best Hindi/Hinglish accuracy — roughly half the word-error rate of Whisper large-v3 on spontaneous Hindi — with a code-mix mode that keeps Hinglish natural.
+Needs a free API key from [dashboard.sarvam.ai](https://dashboard.sarvam.ai); falls back to local Whisper automatically if the network fails.
+
+📖 **Personal Dictionary** - Teach it the words engines keep getting wrong (names, acronyms, course codes).
+Corrections are whole-word, case-insensitive, and apply to every transcript.
 
 🎨 **Beautiful Native UI** - Retro-inspired design with modern refinement, featuring a menu bar app and full window interface.
 
@@ -26,11 +33,16 @@ A beautiful, native macOS app for speech-to-text transcription powered by OpenAI
 
 ⚡ **Apple Silicon Optimized** - Leverages Metal and Accelerate frameworks for blazing-fast performance on M1/M2/M3 Macs.
 
-⌨️ **Global Hotkey** - Press Cmd+Shift+Space to start/stop recording from anywhere. Text is automatically inserted at your cursor and copied to clipboard.
+⌨️ **Global Hotkey, Two Ways** - Tap Cmd+Shift+Space to start/stop, or hold it down and release — walkie-talkie style.
+Text is automatically inserted at your cursor and copied to clipboard.
 
-🚀 **Auto-Setup** - First launch automatically downloads the base model. No manual setup required - just install and use!
+⏱️ **Live Recording Indicator** - A floating pill follows your cursor showing elapsed time and your real voice level; the menu bar icon turns red while recording and purple while transcribing.
 
-🔔 **Smart Notifications** - Audio/visual feedback when recording starts, stops, and transcription completes.
+🛑 **Forgiving by Design** - Recordings auto-stop after 2 minutes of silence or 10 minutes total, so a forgotten hotkey never becomes an hour-long recording.
+
+🚀 **Auto-Setup** - First launch automatically downloads the base model, and Kalam can start itself at login (Settings → General).
+
+🔔 **Smart Notifications** - Audio/visual feedback when recording starts, stops, transcription completes — and clear, actionable messages when something goes wrong.
 
 ## Screenshots
 
@@ -112,12 +124,13 @@ If you want to ship this as your own branded product:
 
 ### Using the Global Hotkey (Recommended)
 
-The fastest way to transcribe:
+The fastest way to transcribe — two styles, same key:
 
-1. **Start recording** - Press Cmd+Shift+Space (anywhere in macOS)
-2. **Speak** - Say what you want to transcribe
-3. **Stop & transcribe** - Press Cmd+Shift+Space again
-4. **Done!** - Text appears at your cursor and is copied to clipboard
+- **Tap to toggle**: press Cmd+Shift+Space, speak, press it again to stop and transcribe.
+- **Hold to talk**: hold Cmd+Shift+Space down, speak, release — great for quick one-liners.
+
+Either way, the text appears at your cursor and is copied to the clipboard.
+A floating indicator near your cursor shows the elapsed time and your live voice level while recording.
 
 **Example:** Writing an email? Click in the email body, press Cmd+Shift+Space, speak your message, press Cmd+Shift+Space again. The transcribed text appears in your email!
 
@@ -134,21 +147,28 @@ The fastest way to transcribe:
 2. **Wait** for processing (varies by file length and model size)
 3. **Copy or export** the transcription
 
-## Model Selection Guide
+## Engine & Model Selection Guide
 
-| Model  | Size   | Speed  | Accuracy | Best For                    |
-|--------|--------|--------|----------|-----------------------------|
-| Tiny   | 75 MB  | ⚡⚡⚡⚡  | ⭐⭐     | Quick notes, older hardware |
-| Base   | 142 MB | ⚡⚡⚡   | ⭐⭐⭐    | General use (recommended)   |
-| Small  | 466 MB | ⚡⚡    | ⭐⭐⭐⭐   | Better accuracy             |
-| Medium | 1.5 GB | ⚡     | ⭐⭐⭐⭐⭐  | High accuracy, good hardware|
-| Large  | 2.9 GB | ⚡     | ⭐⭐⭐⭐⭐⭐ | Best accuracy, powerful Macs|
+**Two engines** (Settings → Transcription Engine):
 
-**Recommendation:**
-- **M1/M2/M3 Macs**: Start with Base or Small
-- **Intel Macs**: Start with Tiny or Base
-- **Quick notes**: Tiny or Base
-- **Important transcriptions**: Small or Medium
+| Engine | Where it runs | Best for | Needs |
+|--------|---------------|----------|-------|
+| Local Whisper | On your Mac | Privacy, offline use, English | A downloaded model |
+| Sarvam AI (Saaras v3) | Cloud API | Hindi, Hinglish, code-mixed speech | Free API key from [dashboard.sarvam.ai](https://dashboard.sarvam.ai) |
+
+**Local Whisper models** (Settings → Speech Models):
+
+| Model       | Size   | Speed  | Best For                                        |
+|-------------|--------|--------|--------------------------------------------------|
+| Tiny        | 75 MB  | ⚡⚡⚡⚡  | Quick English notes                              |
+| Base        | 142 MB | ⚡⚡⚡   | General English use                              |
+| Small       | 466 MB | ⚡⚡    | Better English accuracy                          |
+| Medium      | 1.5 GB | ⚡     | High accuracy                                    |
+| Large Turbo | 1.6 GB | ⚡⚡    | **Hindi + English — the only usable local option for Hindi** |
+| Large       | 3.1 GB | ⚡     | Maximum accuracy, slowest                        |
+
+**Recommendation:** use Sarvam for Hindi/Hinglish dictation and Large Turbo as your local model.
+The tiny/base/small models are effectively English-only — their Hindi word-error rates are far too high for real use.
 
 ## System Requirements
 
@@ -167,15 +187,13 @@ The fastest way to transcribe:
 
 ## Privacy
 
-🔒 **Your privacy is paramount:**
+🔒 **Private by default, honest about the exception:**
 
-- ✅ All processing happens locally on your Mac
-- ✅ No internet connection required (except for model downloads)
-- ✅ No data collection or telemetry
-- ✅ No cloud services or external APIs
-- ✅ Audio never leaves your device
-- ✅ Transcription history stored locally only
-- ✅ You have full control over all data
+- ✅ With the **local Whisper engine** (default), all processing happens on your Mac — audio never leaves your device, no internet needed after the model download.
+- ⚠️ With the optional **Sarvam AI engine**, recorded audio is sent to Sarvam's servers for transcription — that's the trade for the best Hindi accuracy. Switch engines any time in Settings.
+- ✅ No data collection or telemetry in the app itself.
+- ✅ Transcription history is stored locally only.
+- ✅ Your Sarvam API key is stored in the macOS Keychain, never in plaintext.
 
 Models are downloaded once from Hugging Face and stored locally:
 ```
@@ -200,10 +218,8 @@ Models are downloaded once from Hugging Face and stored locally:
 
 ## Keyboard Shortcuts
 
-- **Cmd+Shift+Space** (anywhere in macOS) - Start/stop recording with auto-insert at cursor
+- **Cmd+Shift+Space** (anywhere in macOS) - Tap to start/stop recording, or hold to talk; text auto-inserts at cursor
 - `⌘+C` - Copy transcription
-- `⌘+,` - Settings (coming soon)
-- `⌘+H` - Show history (coming soon)
 
 ### Global Hotkey
 
@@ -225,14 +241,18 @@ You can:
 - [x] History with search
 - [x] Export functionality
 - [x] Global hotkey (Cmd+Shift+Space) for quick recording
+- [x] Hold-to-talk (press and hold the hotkey, release to transcribe)
 - [x] Text insertion at cursor position
 - [x] Audio/visual feedback notifications
-- [ ] Streaming transcription (real-time results)
-- [ ] Custom vocabulary support
+- [x] Sarvam AI engine for Hindi/Hinglish (with automatic local fallback)
+- [x] Whisper large-v3-turbo model for local multilingual use
+- [x] Personal dictionary (custom vocabulary corrections)
+- [x] Auto-stop on silence / maximum duration
+- [x] Launch at login
+- [x] Live recording indicator with elapsed time
+- [ ] Streaming transcription (real-time results via Sarvam WebSocket)
 - [ ] Speaker diarization
 - [ ] Timestamp display
-- [ ] Additional keyboard shortcuts
-- [ ] Dark/light mode customization
 - [ ] Configurable hotkey (currently Cmd+Shift+Space - no permissions required)
 - [ ] App Store distribution
 
@@ -256,9 +276,14 @@ Contributions are welcome! Please feel free to submit pull requests or open issu
 - The text is always copied to clipboard as a backup - use Cmd+V to paste
 - Make sure you're focused in a text input field
 
-**Microphone not working:**
-- System Settings → Privacy & Security → Microphone
-- Enable permission for Kalam
+**Microphone not working (checkbox looks enabled but recording fails):**
+- macOS ties permissions to the app's code signature; after updating Kalam the old grant can go stale even though the checkbox stays on.
+- Fix: `tccutil reset Microphone io.kalam.app` in Terminal, relaunch Kalam, and allow when prompted.
+- Same idea for paste-at-cursor: remove the Kalam entry in System Settings → Privacy & Security → Accessibility and re-add `/Applications/Kalam.app`.
+
+**Sarvam engine errors:**
+- Check the API key in Settings (get one at dashboard.sarvam.ai) and your internet connection.
+- Kalam automatically falls back to the local Whisper model when Sarvam is unreachable, so download a local model as a safety net.
 
 **Model didn't auto-download on first launch:**
 - Check internet connection
@@ -330,9 +355,11 @@ This project uses OpenAI's Whisper model, which is also licensed under MIT.
 
 Created with [Claude Code](https://claude.ai/code) by **Dr. Harshvardhan**
 
-- 🌐 Website: [harshvardhan.dev](https://harshvardhan.dev)
-- 🐦 Twitter: [@harshvardhan_](https://twitter.com/harshvardhan_)
-- 📧 Email: hello@harshvardhan.dev
+- 🌐 Website: [harsh17.in](https://harsh17.in)
+- 💻 GitHub: [@harshvardhaniimi](https://github.com/harshvardhaniimi)
+- 🔗 LinkedIn: [harshvardhaniimi](https://www.linkedin.com/in/harshvardhaniimi/)
+- 🧵 Threads: [@harsh17.in](https://www.threads.net/@harsh17.in)
+- 📧 Email: hello@harsh17.in
 
 ---
 

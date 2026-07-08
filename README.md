@@ -12,6 +12,7 @@ Local transcription runs on-device via OpenAI Whisper; an optional Sarvam AI clo
 🔒 **Private by Default** - The local Whisper engine keeps everything on your Mac: no cloud, no telemetry, no subscriptions.
 
 🇮🇳 **Hindi + English, Properly** - Choose the Sarvam AI engine (Saaras v3) for the best Hindi/Hinglish accuracy — roughly half the word-error rate of Whisper large-v3 on spontaneous Hindi — with a code-mix mode that keeps Hinglish natural.
+Saaras v3 supports 22 Indian languages (Hindi, Tamil, Telugu, Bengali, Marathi, Gujarati, Kannada, Malayalam, Punjabi, Odia, and more) plus Indian English, with automatic language detection.
 Needs a free API key from [dashboard.sarvam.ai](https://dashboard.sarvam.ai); falls back to local Whisper automatically if the network fails.
 
 📖 **Personal Dictionary** - Teach it the words engines keep getting wrong (names, acronyms, course codes).

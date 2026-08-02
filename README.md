@@ -45,24 +45,31 @@ Text is automatically inserted at your cursor and copied to clipboard.
 
 🔔 **Smart Notifications** - Audio/visual feedback when recording starts, stops, transcription completes — and clear, actionable messages when something goes wrong.
 
-## Screenshots
+## Kalam in Action
 
-*(Menu Bar App)*
-```
-┌─────────────────────────────────────┐
-│ 🖋️ Kalam                🕐 ⚙️       │
-├─────────────────────────────────────┤
-│                                     │
-│   Ready to transcribe               │
-│   Click record to start             │
-│                                     │
-│   [Waveform Visualization]          │
-│                                     │
-│        ● Record                     │
-│                                     │
-│   Model: Base • Language: Auto      │
-└─────────────────────────────────────┘
-```
+Kalam stays in your menu bar until you need it.
+Tap or hold `Cmd+Shift+Space` from any app, speak, and let the transcript appear at your cursor.
+
+<p align="center">
+  <img src="docs/assets/screenshots/kalam-ready.png" alt="Kalam menu-bar popover ready to transcribe" width="520">
+</p>
+
+<table>
+  <tr>
+    <td width="50%" align="center"><strong>Speak and review</strong></td>
+    <td width="50%" align="center"><strong>Find it later</strong></td>
+  </tr>
+  <tr>
+    <td><img src="docs/assets/screenshots/kalam-transcript-blurred.png" alt="Kalam showing a completed transcript with private text blurred" width="100%"></td>
+    <td><img src="docs/assets/screenshots/kalam-history-blurred.png" alt="Kalam transcription history with private text blurred" width="100%"></td>
+  </tr>
+  <tr>
+    <td valign="top">Review the result, copy it, or start another recording.</td>
+    <td valign="top">Search local history by phrase and see each recording's duration.</td>
+  </tr>
+</table>
+
+<sub>Transcript content is intentionally blurred in these public screenshots.</sub>
 
 ## Installation
 
@@ -118,10 +125,42 @@ If you want to ship this as your own branded product:
 
 ### First Launch
 
-1. **Launch the app** - A waveform icon will appear in your menu bar
-2. **Wait for auto-download** - The base model (142 MB) downloads automatically on first launch
-3. **Grant permissions** - Allow Microphone and Accessibility access when prompted
-4. **You're ready!** - Press Cmd+Shift+Space from anywhere to start recording
+1. **Launch Kalam** — Look for the waveform icon in the menu bar.
+2. **Allow Microphone access** — macOS asks the first time you record.
+3. **Allow Accessibility access if you want auto-insert** — The hotkey and clipboard still work without it.
+4. **Choose an engine** — Use local Whisper for private, offline English dictation or add a Sarvam API key for Hindi and Hinglish.
+5. **Keep a local model ready** — The Base model is a compact English default; use Large Turbo for multilingual local transcription.
+6. **Press `Cmd+Shift+Space` anywhere** — Tap to toggle or hold to talk.
+
+<table>
+  <tr>
+    <td width="50%" align="center"><strong>1. Choose your engine</strong></td>
+    <td width="50%" align="center"><strong>2. Download a local model</strong></td>
+  </tr>
+  <tr>
+    <td><img src="docs/assets/screenshots/kalam-transcription-engine.png" alt="Kalam settings with Sarvam AI selected as the transcription engine" width="100%"></td>
+    <td><img src="docs/assets/screenshots/kalam-speech-models.png" alt="Kalam speech model download and selection settings" width="100%"></td>
+  </tr>
+  <tr>
+    <td valign="top">Sarvam is optional and sends recorded audio to its cloud service.</td>
+    <td valign="top">A downloaded Whisper model also provides automatic fallback if Sarvam is unavailable.</td>
+  </tr>
+</table>
+
+<table>
+  <tr>
+    <td width="50%" align="center"><strong>3. Make Kalam easy to reach</strong></td>
+    <td width="50%" align="center"><strong>4. Teach it your vocabulary</strong></td>
+  </tr>
+  <tr>
+    <td><img src="docs/assets/screenshots/kalam-settings-general.png" alt="Kalam general settings for launch at login and the global hotkey" width="100%"></td>
+    <td><img src="docs/assets/screenshots/kalam-personal-dictionary.png" alt="Kalam personal dictionary settings and app information" width="100%"></td>
+  </tr>
+  <tr>
+    <td valign="top">Start at login and keep the global hotkey enabled for dictation from any app.</td>
+    <td valign="top">Add names, acronyms, and specialist terms once so future transcripts use the right spelling.</td>
+  </tr>
+</table>
 
 ### Using the Global Hotkey (Recommended)
 

@@ -46,14 +46,18 @@
         }
 
         .container {
-            max-width: 800px;
+            max-width: 1120px;
             margin: 0 auto;
             padding: 60px 20px;
         }
 
         header {
-            text-align: center;
-            margin-bottom: 50px;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(320px, 0.82fr);
+            gap: clamp(32px, 6vw, 76px);
+            align-items: center;
+            margin-bottom: 64px;
+            text-align: left;
         }
 
         .icon {
@@ -76,8 +80,8 @@
 
         .cta-group {
             display: flex;
-            flex-direction: column;
             align-items: center;
+            flex-wrap: wrap;
             gap: 12px;
         }
 
@@ -106,10 +110,81 @@
             color: var(--text-secondary);
         }
 
+        .hero-visual {
+            margin: 0;
+        }
+
+        .hero-visual img {
+            display: block;
+            width: 100%;
+            height: auto;
+            filter: drop-shadow(0 24px 34px rgba(63, 53, 88, 0.18));
+        }
+
+        .hero-visual figcaption {
+            margin-top: 10px;
+            color: var(--text-secondary);
+            font-size: 0.82rem;
+            text-align: center;
+        }
+
         .section-title {
             font-size: 1.5rem;
             font-weight: 600;
-            margin-bottom: 24px;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .section-intro {
+            max-width: 650px;
+            margin: 0 auto 28px;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        .workflow-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 20px;
+            margin-bottom: 64px;
+            align-items: start;
+        }
+
+        .screenshot-card,
+        .setup-card {
+            margin: 0;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            overflow: hidden;
+        }
+
+        .screenshot-card img,
+        .setup-card img {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+
+        .shot-copy {
+            padding: 18px 20px 20px;
+        }
+
+        .shot-copy strong {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 1rem;
+        }
+
+        .shot-copy span {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .privacy-note {
+            margin: -46px auto 64px;
+            color: var(--text-secondary);
+            font-size: 0.82rem;
             text-align: center;
         }
 
@@ -240,7 +315,7 @@
 
         .how-it-works {
             text-align: center;
-            margin-bottom: 50px;
+            margin-bottom: 64px;
         }
 
         .steps {
@@ -265,6 +340,51 @@
             align-items: center;
         }
 
+        .setup-section {
+            margin-bottom: 64px;
+        }
+
+        .setup-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 20px;
+        }
+
+        .setup-card figcaption {
+            padding: 18px 20px 20px;
+        }
+
+        .setup-card .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            margin-right: 8px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: #fff;
+            font-size: 0.82rem;
+            font-weight: 700;
+            vertical-align: middle;
+        }
+
+        .setup-card strong {
+            vertical-align: middle;
+        }
+
+        .setup-card p {
+            margin-top: 9px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        a:focus-visible,
+        button:focus-visible {
+            outline: 3px solid var(--accent);
+            outline-offset: 4px;
+        }
+
         footer {
             text-align: center;
             padding-top: 32px;
@@ -287,21 +407,56 @@
             .tagline { font-size: 1.1rem; }
             .step-arrow { display: none; }
             .steps { flex-direction: column; align-items: center; }
+            .workflow-grid,
+            .setup-grid { grid-template-columns: 1fr; }
+            .privacy-note { margin-top: -46px; }
+        }
+
+        @media (max-width: 800px) {
+            header {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .cta-group {
+                justify-content: center;
+            }
+
+            .hero-visual {
+                width: min(100%, 520px);
+                margin: 0 auto;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .download-btn {
+                transition: none;
+            }
+
+            .download-btn:hover {
+                transform: none;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <div class="icon">🖋️</div>
-            <h1>Kalam <span style="color: var(--accent); font-size: 0.6em; font-weight: 500;">कलम</span></h1>
-            <p class="tagline">Speech-to-text for macOS, built for Hindi + English.<br>Private by default, fast, and free.</p>
-            <div class="cta-group">
-                <a href="https://github.com/harshvardhaniimi/kalam/releases/latest/download/Kalam.zip" class="download-btn">
-                    <span>⬇️</span> Download for Mac
-                </a>
-                <span class="version">macOS 14.0+ &bull; Apple Silicon</span>
+            <div class="hero-copy">
+                <div class="icon">🖋️</div>
+                <h1>Kalam <span style="color: var(--accent); font-size: 0.6em; font-weight: 500;">कलम</span></h1>
+                <p class="tagline">Speech-to-text for macOS, built for Hindi + English.<br>Private by default, fast, and free.</p>
+                <div class="cta-group">
+                    <a href="https://github.com/harshvardhaniimi/kalam/releases/latest/download/Kalam.zip" class="download-btn">
+                        <span>⬇️</span> Download for Mac
+                    </a>
+                    <span class="version">macOS 14.0+ &bull; Apple Silicon</span>
+                </div>
             </div>
+            <figure class="hero-visual">
+                <img src="assets/screenshots/kalam-ready.png" alt="Kalam menu-bar popover ready to transcribe" width="944" height="1144">
+                <figcaption>One shortcut away, from any app.</figcaption>
+            </figure>
         </header>
 
         <div class="how-it-works">
@@ -317,6 +472,28 @@
             </div>
             <p class="note" style="margin-top: 12px;">Prefer toggling? Tap the hotkey to start, tap again to stop. A floating indicator shows elapsed time while you record.</p>
         </div>
+
+        <section aria-labelledby="workflow-title">
+            <h2 class="section-title" id="workflow-title">A Complete Dictation Loop</h2>
+            <p class="section-intro">Speak, review the result, and find it again later without leaving the menu bar.</p>
+            <div class="workflow-grid">
+                <figure class="screenshot-card">
+                    <img src="assets/screenshots/kalam-transcript-blurred.png" alt="Kalam showing a completed transcript with private text blurred" loading="lazy" width="1100" height="1430">
+                    <figcaption class="shot-copy">
+                        <strong>Review and copy</strong>
+                        <span>Your latest transcript stays ready to copy while you begin the next recording.</span>
+                    </figcaption>
+                </figure>
+                <figure class="screenshot-card">
+                    <img src="assets/screenshots/kalam-history-blurred.png" alt="Kalam searchable transcription history with private text blurred" loading="lazy" width="1137" height="1383">
+                    <figcaption class="shot-copy">
+                        <strong>Search local history</strong>
+                        <span>Find an earlier recording by phrase and check its date and duration.</span>
+                    </figcaption>
+                </figure>
+            </div>
+            <p class="privacy-note">Transcript content is intentionally blurred in these public screenshots.</p>
+        </section>
 
         <h2 class="section-title">Features</h2>
         <div class="features">
@@ -351,6 +528,41 @@
                 <p>Searchable transcription history, plus drag &amp; drop audio file transcription.</p>
             </div>
         </div>
+
+        <section class="setup-section" id="first-setup" aria-labelledby="setup-title">
+            <h2 class="section-title" id="setup-title">Set Up Kalam Once</h2>
+            <p class="section-intro">Choose how Kalam transcribes, keep a local fallback ready, and make the shortcut available whenever you need it.</p>
+            <div class="setup-grid">
+                <figure class="setup-card">
+                    <img src="assets/screenshots/kalam-transcription-engine.png" alt="Kalam settings with Sarvam AI selected as the transcription engine" loading="lazy" width="1288" height="1144">
+                    <figcaption>
+                        <span class="step-number">1</span><strong>Choose your engine</strong>
+                        <p>Stay offline with local Whisper, or add a Sarvam API key for stronger Hindi and Hinglish transcription.</p>
+                    </figcaption>
+                </figure>
+                <figure class="setup-card">
+                    <img src="assets/screenshots/kalam-speech-models.png" alt="Kalam settings for downloading and selecting local Whisper models" loading="lazy" width="1288" height="1144">
+                    <figcaption>
+                        <span class="step-number">2</span><strong>Download a local model</strong>
+                        <p>Use Base for compact English dictation or Large Turbo for multilingual local use and cloud fallback.</p>
+                    </figcaption>
+                </figure>
+                <figure class="setup-card">
+                    <img src="assets/screenshots/kalam-settings-general.png" alt="Kalam general settings for launch at login and the global hotkey" loading="lazy" width="1288" height="1144">
+                    <figcaption>
+                        <span class="step-number">3</span><strong>Keep Kalam ready</strong>
+                        <p>Start Kalam at login and leave the global hotkey enabled for dictation from any app.</p>
+                    </figcaption>
+                </figure>
+                <figure class="setup-card">
+                    <img src="assets/screenshots/kalam-personal-dictionary.png" alt="Kalam personal dictionary settings and app information" loading="lazy" width="1288" height="1144">
+                    <figcaption>
+                        <span class="step-number">4</span><strong>Teach it your vocabulary</strong>
+                        <p>Add names, acronyms, and specialist terms once so future transcripts use the right spelling.</p>
+                    </figcaption>
+                </figure>
+            </div>
+        </section>
 
         <div class="install-section">
             <h2>Quick Install</h2>

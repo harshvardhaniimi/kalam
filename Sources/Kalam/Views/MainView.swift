@@ -1,10 +1,13 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct MainView: View {
     @EnvironmentObject var appState: AppState
     @State private var showSettings = false
     @State private var showHistory = false
     @State private var justCopied = false
+    @State private var showFileImporter = false
+    @State private var isFileDropTargeted = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -39,6 +42,29 @@ struct MainView: View {
         }
         .frame(width: 400, height: 500)
         .background(Color(NSColor.windowBackgroundColor))
+        .overlay {
+            if isFileDropTargeted {
+                fileDropOverlay
+            }
+        }
+        .onDrop(of: [.fileURL], isTargeted: $isFileDropTargeted) { providers in
+            handleDrop(providers: providers)
+        }
+        .fileImporter(
+            isPresented: $showFileImporter,
+            allowedContentTypes: AudioFileLoader.importContentTypes,
+            allowsMultipleSelection: false
+        ) { result in
+            switch result {
+            case .success(let urls):
+                guard let url = urls.first else { return }
+                Task {
+                    await appState.transcribeFile(url: url)
+                }
+            case .failure(let error):
+                appState.notificationService.showError("Could not open the audio file: \(error.localizedDescription)")
+            }
+        }
     }
 
     private var isErrorTranscription: Bool {
@@ -64,6 +90,14 @@ struct MainView: View {
             }
 
             Spacer()
+
+            Button(action: { showFileImporter = true }) {
+                Image(systemName: "waveform.badge.plus")
+            }
+            .buttonStyle(IconButtonStyle())
+            .help("Transcribe an audio file")
+            .accessibilityLabel("Transcribe an audio file")
+            .disabled(appState.isRecording || appState.isProcessing)
 
             Button(action: { showHistory.toggle() }) {
                 Image(systemName: "clock")
@@ -129,6 +163,9 @@ struct MainView: View {
                 Text("tap to toggle or hold to talk — Hindi, English, or both")
                     .font(DesignSystem.Typography.footnote)
                     .foregroundColor(DesignSystem.Colors.textSecondary)
+                Text("Or drag an audio file here to transcribe")
+                    .font(DesignSystem.Typography.footnote)
+                    .foregroundColor(DesignSystem.Colors.textSecondary)
             }
             #endif
         }
@@ -189,6 +226,33 @@ struct MainView: View {
             .padding(DesignSystem.Spacing.md)
         }
         .frame(maxHeight: .infinity)
+    }
+
+    private var fileDropOverlay: some View {
+        RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.lg)
+            .fill(Color(NSColor.windowBackgroundColor).opacity(0.96))
+            .overlay(
+                VStack(spacing: DesignSystem.Spacing.md) {
+                    Image(systemName: "waveform.badge.plus")
+                        .font(.system(size: 44, weight: .medium))
+                        .foregroundColor(DesignSystem.Colors.accent)
+                    Text("Drop audio to transcribe")
+                        .font(DesignSystem.Typography.title3)
+                        .foregroundColor(DesignSystem.Colors.textPrimary)
+                    Text("Kalam will copy the transcript and save it to History")
+                        .font(DesignSystem.Typography.footnote)
+                        .foregroundColor(DesignSystem.Colors.textSecondary)
+                        .multilineTextAlignment(.center)
+                }
+                .padding(DesignSystem.Spacing.xl)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.lg)
+                    .strokeBorder(DesignSystem.Colors.accent, lineWidth: 2)
+            )
+            .padding(DesignSystem.Spacing.sm)
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
     }
 
     // MARK: - Controls
@@ -295,6 +359,44 @@ struct MainView: View {
         let minutes = Int(duration) / 60
         let seconds = Int(duration) % 60
         return String(format: "%02d:%02d", minutes, seconds)
+    }
+
+    private func handleDrop(providers: [NSItemProvider]) -> Bool {
+        guard let provider = providers.first(where: {
+            $0.hasItemConformingToTypeIdentifier(UTType.fileURL.identifier)
+        }) else {
+            return false
+        }
+
+        provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier, options: nil) { item, error in
+            if let error {
+                Task { @MainActor in
+                    appState.notificationService.showError("Could not read the dropped file: \(error.localizedDescription)")
+                }
+                return
+            }
+
+            let url: URL?
+            if let droppedURL = item as? URL {
+                url = droppedURL
+            } else if let data = item as? Data {
+                url = URL(dataRepresentation: data, relativeTo: nil)
+            } else {
+                url = nil
+            }
+
+            guard let url else {
+                Task { @MainActor in
+                    appState.notificationService.showError("Kalam could not read the dropped file.")
+                }
+                return
+            }
+
+            Task { @MainActor in
+                await appState.transcribeFile(url: url)
+            }
+        }
+        return true
     }
 }
 

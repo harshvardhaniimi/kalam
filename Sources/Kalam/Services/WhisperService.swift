@@ -82,7 +82,9 @@ class WhisperService: ObservableObject {
         return text
     }
 
-    /// Transcribe an audio file (WAV, MP3, M4A, FLAC).
+    /// Direct WhisperKit file transcription for dedicated audio formats.
+    /// AppState normally uses AudioFileLoader so both engines share the wider
+    /// Core Audio and MP4/QuickTime container support.
     func transcribeFile(
         url: URL,
         model: WhisperModel,

@@ -271,7 +271,7 @@ struct MainWindowView: View {
             }
 
             Task {
-                try? await appState.transcribeFile(url: url)
+                await appState.transcribeFile(url: url)
             }
         }
 

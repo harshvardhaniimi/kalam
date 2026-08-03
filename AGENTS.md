@@ -42,6 +42,7 @@ Setup/recovery instructions: `signing/README.md`.
 
 ### Services (Sources/Kalam/Services/)
 - `AudioCaptureService` — AVAudioEngine capture. Samples are accumulated **synchronously on the render thread** (SampleAccumulator, lock-guarded) — never hop actors in the tap callback, that loses the recording tail. Captures at the device's real sample rate and resamples to 16 kHz with AVAudioConverter at stop. Fires `onRecordingInterrupted` on AVAudioEngineConfigurationChange (device switch mid-recording).
+- `AudioFileLoader` — validates dropped audio/media URLs and decodes, downmixes, and resamples them to 16 kHz mono for either engine. Dedicated audio uses AVAudioFile; MP4/QuickTime and other media containers fall back to AVAssetReader and contribute only their audio track.
 - `WhisperService` — WhisperKit wrapper (load/transcribe). Despite the filename, this is WhisperKit, not whisper.cpp and not Apple Speech.
 - `SarvamService` — Sarvam AI REST client (`POST /speech-to-text`, multipart, `api-subscription-key` header) + `TranscriptionEngine`/`SarvamMode` enums.
 - `GlobalHotkeyManager` — Cmd+Shift+Space via Carbon RegisterEventHotKey (no Accessibility needed for the hotkey itself). Delivers both press and release; AppState turns them into tap-to-toggle vs hold-to-talk (release after ≥0.6 s stops and transcribes). Registration failure notifies the user. Disabled in App Store build.
@@ -52,12 +53,12 @@ Setup/recovery instructions: `signing/README.md`.
 - `NotificationService` — sounds + UNUserNotification feedback. Every failure path must surface here — no silent failures.
 
 ### Views (Sources/Kalam/Views/)
-- `MainView` (popover), `MainWindowView` (drag-drop file transcription), `SettingsView` (engine/model/language/hotkey), `WaveformView`, `HistoryView`, `RecordingIndicatorWindow` (floating overlay while recording).
+- `MainView` (popover, file picker, and popover drop target), `MainWindowView` (standalone file-transcription window), `SettingsView` (engine/model/language/hotkey), `WaveformView`, `HistoryView`, `RecordingIndicatorWindow` (floating overlay while recording).
 
 ### Key Flows
 1. **Hotkey**: Cmd+Shift+Space (tap-toggle or hold-to-talk) → `AppState.handleHotkeyDown/Up` → record → stop → `performTranscription` (Sarvam or WhisperKit) → personal-dictionary corrections (`applyDictionary`) → paste at cursor + clipboard + history.
 2. **UI recording**: MainView button → same flow without paste.
-3. **File transcription**: drop file in MainWindowView → `WhisperService.transcribeFile` (always local; Sarvam path not used for files).
+3. **File transcription**: drop an audio file onto the status icon or popover, or choose it with the file picker → `AppState.transcribeFile` → selected Sarvam or local Whisper engine → personal-dictionary corrections → clipboard + history.
 
 ## Dual Build System
 - **Direct distribution** (`./build-app.sh`): full features (hotkey, paste-at-cursor).
@@ -76,3 +77,4 @@ Setup/recovery instructions: `signing/README.md`.
 - Sarvam failures must fall back to local Whisper when a model is installed.
 - Recordings must be bounded: auto-stop on sustained silence (2 min) and a hard cap (10 min), constants in AudioCaptureService. Auto-ended recordings go to clipboard + history, never paste-at-cursor.
 - The menu bar icon mirrors state (red = recording, ink = transcribing); don't add separate flash/animation mechanisms that fight it.
+- `install.sh` is also the updater: validate the downloaded app and its signature before touching the installed bundle, preserve the prior bundle recoverably, restore it after any failed or interrupted update, and never modify Application Support or preferences during an update.

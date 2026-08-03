@@ -51,7 +51,7 @@ Kalam stays in your menu bar until you need it.
 Tap or hold `Cmd+Shift+Space` from any app, speak, and let the transcript appear at your cursor.
 
 <p align="center">
-  <img src="docs/assets/screenshots/kalam-ready.png" alt="Kalam menu-bar popover ready to transcribe" width="520">
+  <img src="docs/assets/screenshots/kalam-ready-file-drop.png" alt="Kalam menu-bar popover ready to transcribe with an audio-file button and drag-to-transcribe instruction" width="520">
 </p>
 
 <table>
@@ -81,6 +81,8 @@ curl -sL https://raw.githubusercontent.com/harshvardhaniimi/kalam/main/install.s
 ```
 
 Then right-click the app in Applications and select "Open" (first time only).
+Run the same command again whenever you want to update Kalam to the latest GitHub release.
+Updates preserve your settings, downloaded models, and transcription History, and keep the prior app bundle as a recoverable backup.
 
 ### Option 2: Build from Source
 
@@ -183,9 +185,16 @@ A floating indicator near your cursor shows the elapsed time and your live voice
 
 ### Transcribing Files
 
-1. **Drag & drop** an audio file into the main window
-2. **Wait** for processing (varies by file length and model size)
-3. **Copy or export** the transcription
+1. **Drag and drop** a WAV, MP3, M4A, or FLAC file onto the Kalam menu bar icon or the open popover.
+2. **Wait** while Kalam transcribes it with your selected engine and model.
+3. **Paste immediately** because the completed transcript is copied to your clipboard automatically and saved in searchable History.
+
+Prefer the keyboard?
+Open Kalam and choose the waveform-plus button to select an audio file with the standard macOS file picker.
+
+**Supported audio formats:** WAV/WAVE/W64, MP3/MP2/MP1, M4A/M4B/M4R, AAC/ADTS, AIFF/AIF/AIFC, CAF, FLAC, OGG/OGA/Opus, AU/SND, AC-3/E-AC-3, AMR/AWB, and 3GP/3G2.
+Kalam also accepts MP4/M4V and QuickTime MOV/QT/QTA files and extracts only their audio track.
+Additional formats can work whenever macOS AVFoundation can decode their audio codec.
 
 ## Engine & Model Selection Guide
 

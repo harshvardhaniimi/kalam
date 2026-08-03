@@ -1,6 +1,7 @@
 import SwiftUI
 import AppKit
 import Combine
+import UniformTypeIdentifiers
 
 @main
 struct KalamApp: App {
@@ -18,6 +19,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var statusItem: NSStatusItem?
     var popover: NSPopover?
     var mainWindow: NSWindow?
+    private var statusItemDropView: StatusItemDropView?
     private var cancellables = Set<AnyCancellable>()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -28,6 +30,21 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             button.image = NSImage(systemSymbolName: "waveform", accessibilityDescription: AppBrand.displayName)
             button.action = #selector(togglePopover)
             button.target = self
+            button.toolTip = "Click to open \(AppBrand.displayName), or drop an audio file to transcribe it"
+            button.setAccessibilityHelp("Drop an audio file here to transcribe it, copy the transcript, and save it to History")
+
+            let dropView = StatusItemDropView(frame: button.bounds)
+            dropView.autoresizingMask = [.width, .height]
+            dropView.onClick = { [weak self] in
+                self?.togglePopover()
+            }
+            dropView.onAudioFileDrop = { url in
+                Task { @MainActor in
+                    await AppState.shared.transcribeFile(url: url)
+                }
+            }
+            button.addSubview(dropView)
+            statusItemDropView = dropView
         }
 
         // Create popover
@@ -102,5 +119,67 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         mainWindow?.makeKeyAndOrderFront(nil)
         NSApplication.shared.activate(ignoringOtherApps: true)
+    }
+}
+
+private final class StatusItemDropView: NSView {
+    var onClick: (() -> Void)?
+    var onAudioFileDrop: ((URL) -> Void)?
+
+    override init(frame frameRect: NSRect) {
+        super.init(frame: frameRect)
+        registerForDraggedTypes([.fileURL])
+        setAccessibilityElement(false)
+    }
+
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        registerForDraggedTypes([.fileURL])
+        setAccessibilityElement(false)
+    }
+
+    override func mouseDown(with event: NSEvent) {
+        onClick?()
+    }
+
+    override func draggingEntered(_ sender: NSDraggingInfo) -> NSDragOperation {
+        guard audioURL(from: sender.draggingPasteboard) != nil else { return [] }
+        setButtonHighlighted(true)
+        return .copy
+    }
+
+    override func draggingUpdated(_ sender: NSDraggingInfo) -> NSDragOperation {
+        guard audioURL(from: sender.draggingPasteboard) != nil else { return [] }
+        return .copy
+    }
+
+    override func draggingExited(_ sender: NSDraggingInfo?) {
+        setButtonHighlighted(false)
+    }
+
+    override func performDragOperation(_ sender: NSDraggingInfo) -> Bool {
+        defer { setButtonHighlighted(false) }
+        guard let url = audioURL(from: sender.draggingPasteboard) else { return false }
+        onAudioFileDrop?(url)
+        return true
+    }
+
+    override func concludeDragOperation(_ sender: NSDraggingInfo?) {
+        setButtonHighlighted(false)
+    }
+
+    private func audioURL(from pasteboard: NSPasteboard) -> URL? {
+        guard let object = pasteboard.readObjects(
+            forClasses: [NSURL.self],
+            options: [.urlReadingFileURLsOnly: true]
+        )?.first as? NSURL else {
+            return nil
+        }
+        let url = object as URL
+        return AudioFileLoader.isAudioFile(url) ? url : nil
+    }
+
+    private func setButtonHighlighted(_ highlighted: Bool) {
+        (superview as? NSButton)?.highlight(highlighted)
     }
 }

@@ -103,6 +103,7 @@ class AppState: ObservableObject {
         self.historyManager = HistoryManager()
         self.hotkeyManager = GlobalHotkeyManager()
         self.notificationService = NotificationService.shared
+        self.transcriptionHistory = self.historyManager.transcriptions
 
         setupBindings()
         #if !APP_STORE_BUILD
@@ -461,33 +462,56 @@ class AppState: ObservableObject {
         isProcessing = false
     }
 
-    func transcribeFile(url: URL) async throws {
-        guard modelManager.isModelInstalled(selectedModel) else {
-            throw TranscriptionError.modelNotFound
+    func transcribeFile(url: URL) async {
+        guard AudioFileLoader.isAudioFile(url) else {
+            notificationService.showError(AudioFileError.unsupportedFormat.localizedDescription)
+            return
+        }
+        guard !isRecording, !isProcessing else {
+            notificationService.showError("Kalam is already recording or transcribing. Try the file again when it finishes.")
+            return
+        }
+        guard canTranscribe else {
+            notificationService.showError("No transcription engine is ready. Download a Whisper model or add your Sarvam API key in Settings.")
+            return
         }
 
+        let hasSecurityScope = url.startAccessingSecurityScopedResource()
+        defer {
+            if hasSecurityScope {
+                url.stopAccessingSecurityScopedResource()
+            }
+        }
+
+        currentTranscription = ""
         isProcessing = true
         defer { isProcessing = false }
 
-        let modelPath = modelManager.getModelPath(selectedModel)
-        let result = applyDictionary(try await whisperService.transcribeFile(
-            url: url,
-            model: selectedModel,
-            modelPath: modelPath,
-            language: selectedLanguage == "auto" ? nil : selectedLanguage
-        ))
+        do {
+            let loaded = try await Task.detached(priority: .userInitiated) {
+                try await AudioFileLoader.load(url: url)
+            }.value
+            let result = try await performTranscription(audioSamples: loaded.samples)
 
-        currentTranscription = result
+            currentTranscription = result
 
-        let transcription = Transcription(
-            text: result,
-            date: Date(),
-            duration: 0,
-            language: selectedLanguage,
-            sourceFile: url.lastPathComponent
-        )
-        historyManager.save(transcription)
-        transcriptionHistory.insert(transcription, at: 0)
+            let transcription = Transcription(
+                text: result,
+                date: Date(),
+                duration: loaded.duration,
+                language: selectedLanguage,
+                sourceFile: url.lastPathComponent
+            )
+            historyManager.save(transcription)
+            transcriptionHistory.insert(transcription, at: 0)
+            copyToClipboard()
+            notificationService.showTranscriptionComplete(text: result)
+        } catch {
+            print("File transcription error: \(error)")
+            let errorMessage = "Error: \(error.localizedDescription)"
+            currentTranscription = errorMessage
+            notificationService.showError(errorMessage)
+        }
     }
 
     func copyToClipboard() {

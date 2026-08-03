@@ -114,15 +114,6 @@ Or open `Package.swift` in Xcode and press ⌘+R.
    ```
 4. **Open the app** - Right-click → Open (first time only)
 
-## Rebranding
-
-If you want to ship this as your own branded product:
-
-1. Edit `release.config.sh` (app name, bundle ID, repo links, permission copy)
-2. Run `./scripts/create-release.sh <version>` to generate release artifacts
-3. (Optional) Run `./scripts/notarize-release.sh <version>` for Developer ID notarization
-4. See `archive/LAUNCH_BLUEPRINT.md` for additional Gumroad/App Store planning notes
-
 ## Quick Start
 
 ### First Launch

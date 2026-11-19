@@ -5,8 +5,12 @@
 Speech-to-text dictation for Hindi + English (and code-mixed Hinglish), built for [Omarchy](https://omarchy.org) and Hyprland.
 Press a key anywhere, speak, and the text lands at your cursor.
 
-This is the Linux port of the macOS app in the repository root.
+This is the Linux version of the macOS app in the repository root.
 It is a separate Qt Quick program that keeps the same behaviour: the same engines, personal dictionary, history, and export formats.
+
+> **Kalam for Linux has only been tested on Omarchy.**
+> The dictation keys and the bar widget rely on Omarchy's own tooling (`omarchy dictation`, the Omarchy shell), and the package is an Arch package.
+> See [Other distributions](#other-distributions) for what that means elsewhere.
 
 ## Engines
 
@@ -88,6 +92,16 @@ Recordings end themselves after 2 minutes of silence or 10 minutes total; those 
 | History | `~/.local/share/kalam/history.json` |
 | Whisper models | `~/.local/share/kalam/models/` |
 | Sarvam API key | the keyring (`secret-tool`, service `kalam`) |
+
+## Other distributions
+
+None of this has been tried, so treat it as a starting point rather than a supported path.
+
+- The app itself needs Qt 6, `layer-shell-qt`, PipeWire, `wl-clipboard`, `wtype`, `ffmpeg`, and `secret-tool`, on a Wayland compositor that supports layer shell.
+- Outside Omarchy there is no `omarchy dictation` to drive it: bind your own keys to `kalam toggle`, `kalam start`, and `kalam stop`, and start `kalam daemon` with your session.
+- Pasting into terminals with `Ctrl+Shift+V` depends on Omarchy's window tags under Hyprland; elsewhere Kalam sends `Ctrl+V`, and the text is always on the clipboard.
+- The bar widget is an Omarchy shell plugin and has no equivalent elsewhere.
+- Away from Arch, build with `bin/build` and install `build/kalam` yourself; `bin/install` makes an Arch package.
 
 ## Develop
 

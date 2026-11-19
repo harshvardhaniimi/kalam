@@ -7,10 +7,28 @@ Transcription runs on-device with OpenAI Whisper, or through Sarvam AI's cloud e
 | Platform | App | Start here |
 | --- | --- | --- |
 | **macOS** 14+ (Apple Silicon) | Native Swift menu bar app, in the repository root | This README |
-| **Linux** (Omarchy: Arch + Hyprland) | Qt Quick app with an Omarchy bar widget, in [`linux/`](linux/) | [`linux/README.md`](linux/README.md) |
+| **Linux** ([Omarchy](https://omarchy.org): Arch + Hyprland) | Qt Quick app with an Omarchy bar widget, in [`linux/`](linux/) | [`linux/README.md`](linux/README.md) |
 
 Both apps share the same behaviour (engines, personal dictionary, history, export formats) but no code.
 The site at [harshvardhaniimi.github.io/kalam](https://harshvardhaniimi.github.io/kalam/) covers both.
+
+### Linux at a glance
+
+> **The Linux version has only been tested on Omarchy.**
+> Its dictation keys and bar widget are built on Omarchy's own tooling, so other distributions and desktops are untried.
+
+<p align="center">
+  <img src="docs/assets/screenshots/linux/transcript.png" alt="Kalam on Omarchy showing a finished Hindi + English transcript" width="520">
+</p>
+
+```bash
+git clone https://github.com/harshvardhaniimi/kalam.git && cd kalam && linux/bin/install
+omarchy-install-dictation-kalam
+```
+
+Then press `Alt + Space` to start and stop dictating, or hold `Alt + Right Alt` to talk.
+Sarvam AI is the default engine on Linux; Local Whisper is optional and downloads a model only when you ask.
+Everything else about the Linux app is in [`linux/README.md`](linux/README.md).
 
 The rest of this README describes the macOS app.
 
@@ -224,7 +242,7 @@ The tiny/base/small models are effectively English-only — their Hindi word-err
 
 ## System Requirements
 
-- **macOS 14.0 (Sonoma) or later**
+- **macOS 14.0 (Sonoma) or later** (for Linux, see [`linux/README.md`](linux/README.md))
 - **RAM:**
   - 8 GB minimum (for tiny/base models)
   - 16 GB recommended (for small/medium models)
@@ -302,6 +320,7 @@ You can:
 - [x] Auto-stop on silence / maximum duration
 - [x] Launch at login
 - [x] Live recording indicator with elapsed time
+- [x] Linux version for Omarchy ([`linux/`](linux/); tested only on Omarchy)
 - [ ] Streaming transcription (real-time results via Sarvam WebSocket)
 - [ ] Speaker diarization
 - [ ] Timestamp display

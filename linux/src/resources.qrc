@@ -1,0 +1,15 @@
+<RCC>
+    <qresource prefix="/">
+        <file alias="Main.qml">Main.qml</file>
+        <file alias="DictatePage.qml">DictatePage.qml</file>
+        <file alias="HistoryPage.qml">HistoryPage.qml</file>
+        <file alias="SettingsPage.qml">SettingsPage.qml</file>
+        <file alias="HelpOverlay.qml">HelpOverlay.qml</file>
+        <file alias="LevelBars.qml">LevelBars.qml</file>
+        <file alias="KButton.qml">KButton.qml</file>
+        <file alias="KField.qml">KField.qml</file>
+        <file alias="Indicator.qml">Indicator.qml</file>
+        <file alias="i18n/en.json">i18n/en.json</file>
+        <file alias="i18n/hi.json">i18n/hi.json</file>
+    </qresource>
+</RCC>

@@ -7,6 +7,8 @@ Local transcription runs on-device via OpenAI Whisper; an optional Sarvam AI clo
 ![Swift](https://img.shields.io/badge/Swift-5.9+-orange)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
+> **Linux:** a port for Omarchy/Hyprland lives in [`linux/`](linux/README.md).
+
 ## Features
 
 🔒 **Private by Default** - The local Whisper engine keeps everything on your Mac: no cloud, no telemetry, no subscriptions.

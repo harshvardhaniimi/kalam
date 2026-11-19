@@ -1,0 +1,6 @@
+{
+  "tooltip.idle": "Kalam: click to open, right-click to dictate",
+  "tooltip.recording": "Kalam is recording: right-click to stop, middle-click to discard",
+  "tooltip.transcribing": "Kalam is transcribing",
+  "tooltip.stopped": "Kalam is not running: click to start it"
+}

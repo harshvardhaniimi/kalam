@@ -1,0 +1,37 @@
+#!/bin/bash
+
+# omarchy:summary=Make Kalam the dictation backend and add it to the bar
+# Needs no root: it starts Kalam's user service, points Omarchy's dictation
+# keys at it, and links its bar widget into the shell.
+
+set -e
+
+systemctl --user daemon-reload
+systemctl --user enable kalam.service
+systemctl --user restart kalam.service
+
+if ! command -v omarchy-dictation-use >/dev/null; then
+  echo "Kalam is running. Bind keys to: kalam toggle, kalam start, kalam stop."
+  exit 0
+fi
+
+omarchy-dictation-use kalam
+omarchy-restart-hyprctl
+
+# The bar widget ships with the package; a link keeps it current across
+# updates. A plugin folder the user made themselves is left alone.
+plugins="${XDG_CONFIG_HOME:-$HOME/.config}/omarchy/plugins"
+link="$plugins/kalam.dictation"
+if [[ -L $link || ! -e $link ]]; then
+  mkdir -p "$plugins"
+  ln -sfn /usr/share/kalam/omarchy-plugin "$link"
+  omarchy-shell -q shell rescanPlugins >/dev/null 2>&1 || true
+  # Only place it when it isn't in the bar yet, so a spot the user chose
+  # by dragging survives a reinstall.
+  if ! grep -q '"kalam.dictation"' "${XDG_CONFIG_HOME:-$HOME/.config}/omarchy/shell.json" 2>/dev/null; then
+    omarchy plugin enable kalam.dictation --section right >/dev/null 2>&1 ||
+      echo "Add the Kalam widget to the bar with: omarchy plugin enable kalam.dictation"
+  fi
+fi
+
+echo "Kalam now answers Alt + Space (toggle) and Alt + Right Alt (hold to talk)."

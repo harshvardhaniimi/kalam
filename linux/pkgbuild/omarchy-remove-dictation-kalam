@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# omarchy:summary=Stop using Kalam for dictation and take it off the bar
+# Undoes omarchy-install-dictation-kalam. Settings, history, and the
+# package itself stay; remove the package with: omarchy pkg drop kalam
+
+config_home="${XDG_CONFIG_HOME:-$HOME/.config}"
+
+systemctl --user disable --now kalam.service 2>/dev/null || true
+omarchy plugin disable kalam.dictation >/dev/null 2>&1 || true
+
+link="$config_home/omarchy/plugins/kalam.dictation"
+if [[ -L $link && $(readlink "$link") == /usr/share/kalam/omarchy-plugin ]]; then
+  rm "$link"
+fi
+
+backend="$config_home/omarchy/defaults/dictation"
+if [[ -f $backend && $(< "$backend") == "kalam" ]]; then
+  rm "$backend"
+fi
+
+omarchy-shell -q shell rescanPlugins >/dev/null 2>&1 || true
+omarchy-restart-hyprctl

@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# omarchy:summary=Record dictation using Kalam
+# omarchy:args=<start|stop|toggle>
+
+# The adapter Omarchy's dictation keys call (Alt + Space toggles, holding
+# Alt + Right Alt talks) once Kalam is the chosen backend.
+case "${1:-}" in
+  start|toggle) kalam "$1" ;;
+  stop)
+    if ! command -v kalam >/dev/null; then
+      exit 0
+    else
+      kalam stop
+    fi
+    ;;
+  *) echo "Usage: omarchy dictation kalam <start|stop|toggle>" >&2; exit 1 ;;
+esac

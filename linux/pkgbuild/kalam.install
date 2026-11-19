@@ -1,0 +1,8 @@
+post_install() {
+  echo "Kalam is installed. To make it your dictation keys on Omarchy, run:"
+  echo "  omarchy-install-dictation-kalam"
+}
+
+pre_remove() {
+  systemctl --global disable kalam.service 2>/dev/null || true
+}

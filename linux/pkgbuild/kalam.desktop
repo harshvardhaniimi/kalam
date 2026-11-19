@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Kalam
+Name[hi]=कलम
+Comment=Speech-to-text dictation for Hindi + English
+Comment[hi]=हिंदी + अंग्रेज़ी के लिए बोलकर लिखना
+Exec=kalam %f
+Icon=kalam
+Terminal=false
+Categories=Utility;AudioVideo;Audio;
+MimeType=audio/mpeg;audio/x-wav;audio/flac;audio/ogg;audio/mp4;audio/x-m4a;
+StartupWMClass=kalam

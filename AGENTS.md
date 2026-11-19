@@ -78,3 +78,15 @@ Setup/recovery instructions: `signing/README.md`.
 - Recordings must be bounded: auto-stop on sustained silence (2 min) and a hard cap (10 min), constants in AudioCaptureService. Auto-ended recordings go to clipboard + history, never paste-at-cursor.
 - The menu bar icon mirrors state (red = recording, ink = transcribing); don't add separate flash/animation mechanisms that fight it.
 - `install.sh` is also the updater: validate the downloaded app and its signature before touching the installed bundle, preserve the prior bundle recoverably, restore it after any failed or interrupted update, and never modify Application Support or preferences during an update.
+
+## Linux port (`linux/`)
+
+A separate Qt Quick/C++ app for Omarchy and Hyprland; it shares no code with the Swift app but keeps its behaviour and the reliability invariants above. See `linux/README.md`.
+
+- Build `linux/bin/build`, test `linux/bin/test`, install `linux/bin/install` (Arch package).
+- **Sarvam is the default engine.** Local Whisper is opt-in: `whisper-cpp` is an optional dependency and no model is ever downloaded automatically.
+- `backend.{h,cpp}` is the counterpart of `AppState`; one process per session, reached by the CLI over a socket (`ipc.*`).
+- Global keys are Omarchy's: `omarchy-dictation-kalam` adapts `omarchy dictation start|stop|toggle` to the `kalam` CLI. There is no in-app hotkey code.
+- Local engine = a `whisper-server` child process kept warm (`whisper.*`), not a linked library.
+- Paste = `wl-copy` + `wtype` (`inserter.*`); the key lives in the keyring via `secret-tool` (`secretstore.*`).
+- Every visible string goes through `qsTr`/`tr`; add its Hindi to `linux/src/i18n/hi.json` (a test fails on stale keys).

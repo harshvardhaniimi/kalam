@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "kalam.dictation",
+  "name": "Kalam",
+  "version": "0.1.0",
+  "author": "Kalam",
+  "description": "Kalam dictation state, with a click to open it and a right-click to dictate",
+  "kinds": [
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "barWidget": "Widget.qml"
+  },
+  "barWidget": {
+    "displayName": "Kalam",
+    "description": "Dictation state; click to open Kalam, right-click to dictate",
+    "category": "Audio",
+    "allowMultiple": false,
+    "defaultSection": "right"
+  }
+}

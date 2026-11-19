@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🖋️</text></svg>">
-    <title>Kalam - Speech-to-Text for macOS, Hindi + English</title>
-    <meta name="description" content="A native macOS dictation app built for Hindi + English. Private by default with on-device Whisper; optional Sarvam AI engine for the best Hindi accuracy.">
+    <title>Kalam - Speech-to-Text for macOS and Linux, Hindi + English</title>
+    <meta name="description" content="A dictation app for macOS and Linux (Omarchy) built for Hindi + English. Sarvam AI for the best Hindi accuracy, on-device Whisper for fully private use.">
     <style>
         :root {
             --bg: #fafafa;
@@ -260,6 +260,10 @@
             text-decoration: none;
         }
 
+        .permissions a {
+            color: var(--accent);
+        }
+
         .install-section a:hover {
             text-decoration: underline;
         }
@@ -383,6 +387,59 @@
             font-size: 0.9rem;
         }
 
+        /* One page, two platforms: the switch hides the other one's parts. */
+        [data-os="mac"] .linux-only,
+        [data-os="linux"] .mac-only {
+            display: none !important;
+        }
+
+        .platform-switch {
+            display: inline-flex;
+            gap: 4px;
+            padding: 4px;
+            margin-bottom: 28px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+        }
+
+        .platform-switch button {
+            font: inherit;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            background: transparent;
+            border: 0;
+            border-radius: 8px;
+            padding: 8px 18px;
+            cursor: pointer;
+        }
+
+        .platform-switch button[aria-pressed="true"] {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .strip-shots {
+            display: grid;
+            gap: 14px;
+            padding: 28px 24px;
+            background: #0e0e10;
+            justify-items: center;
+        }
+
+        .strip-shots img {
+            width: auto;
+            max-width: 100%;
+            height: auto;
+            border-radius: 6px;
+        }
+
+        .install-section ul {
+            padding-left: 20px;
+            margin: 12px 0 0;
+        }
+
         a:focus-visible,
         button:focus-visible {
             outline: 3px solid var(--accent);
@@ -431,6 +488,11 @@
                 width: min(100%, 520px);
                 margin: 0 auto;
             }
+
+            .platform-switch {
+                margin-left: auto;
+                margin-right: auto;
+            }
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -444,29 +506,43 @@
         }
     </style>
 </head>
-<body>
+<body data-os="mac">
     <div class="container">
         <header>
             <div class="hero-copy">
                 <div class="icon">🖋️</div>
                 <h1>Kalam <span style="color: var(--accent); font-size: 0.6em; font-weight: 500;">कलम</span></h1>
-                <p class="tagline">Speech-to-text for macOS, built for Hindi + English.<br>Private by default, fast, and free.</p>
-                <div class="cta-group">
+                <p class="tagline">Speech-to-text for macOS and Linux, built for Hindi + English.<br>Fast, free, and open source.</p>
+                <div class="platform-switch" role="group" aria-label="Platform">
+                    <button type="button" data-os-choice="mac" aria-pressed="true">macOS</button>
+                    <button type="button" data-os-choice="linux" aria-pressed="false">Linux</button>
+                </div>
+                <div class="cta-group mac-only">
                     <a href="https://github.com/harshvardhaniimi/kalam/releases/latest/download/Kalam.zip" class="download-btn">
                         <span>⬇️</span> Download for Mac
                     </a>
                     <span class="version">macOS 14.0+ &bull; Apple Silicon</span>
                 </div>
+                <div class="cta-group linux-only">
+                    <a href="#install-linux" class="download-btn">
+                        <span>🐧</span> Install on Omarchy
+                    </a>
+                    <span class="version">Arch Linux + Hyprland &bull; built from source</span>
+                </div>
             </div>
-            <figure class="hero-visual">
-                <img src="assets/screenshots/kalam-ready-file-drop.png" alt="Kalam menu-bar popover ready to transcribe with an audio-file button and drag-to-transcribe instruction" width="944" height="1144">
+            <figure class="hero-visual mac-only">
+                <img src="assets/screenshots/macos/kalam-ready-file-drop.png" alt="Kalam menu-bar popover ready to transcribe with an audio-file button and drag-to-transcribe instruction" width="944" height="1144">
+                <figcaption>One shortcut away, from any app.</figcaption>
+            </figure>
+            <figure class="hero-visual linux-only">
+                <img src="assets/screenshots/linux/ready.png" alt="Kalam's window on Omarchy, ready to record, with the microphone button and the dictation shortcuts" width="1440" height="1240">
                 <figcaption>One shortcut away, from any app.</figcaption>
             </figure>
         </header>
 
         <div class="how-it-works">
             <h2 class="section-title">How It Works</h2>
-            <div class="steps">
+            <div class="steps mac-only">
                 <div class="step">Hold <strong>Cmd+Shift+Space</strong></div>
                 <span class="step-arrow">→</span>
                 <div class="step">Speak Hindi, English, or both</div>
@@ -475,29 +551,57 @@
                 <span class="step-arrow">→</span>
                 <div class="step">Text appears at cursor</div>
             </div>
-            <p class="note" style="margin-top: 12px;">Prefer toggling? Tap the hotkey to start, tap again to stop. A floating indicator shows elapsed time while you record.</p>
+            <p class="note mac-only" style="margin-top: 12px;">Prefer toggling? Tap the hotkey to start, tap again to stop. A floating indicator shows elapsed time while you record.</p>
+            <div class="steps linux-only">
+                <div class="step">Hold <strong>Alt+Right Alt</strong></div>
+                <span class="step-arrow">→</span>
+                <div class="step">Speak Hindi, English, or both</div>
+                <span class="step-arrow">→</span>
+                <div class="step">Release</div>
+                <span class="step-arrow">→</span>
+                <div class="step">Text appears at cursor</div>
+            </div>
+            <p class="note linux-only" style="margin-top: 12px;">Prefer toggling? Press <strong>Alt+Space</strong> to start and again to stop. These are Omarchy's own dictation keys, so you change them in Omarchy's keybindings.</p>
         </div>
 
         <section aria-labelledby="workflow-title">
             <h2 class="section-title" id="workflow-title">A Complete Dictation Loop</h2>
-            <p class="section-intro">Speak, review the result, and find it again later without leaving the menu bar.</p>
-            <div class="workflow-grid">
+            <p class="section-intro mac-only">Speak, review the result, and find it again later without leaving the menu bar.</p>
+            <p class="section-intro linux-only">Speak, review the result, and find it again later, all from the keyboard.</p>
+            <div class="workflow-grid linux-only">
                 <figure class="screenshot-card">
-                    <img src="assets/screenshots/kalam-transcript-blurred.png" alt="Kalam showing a completed transcript with private text blurred" loading="lazy" width="1100" height="1430">
+                    <img src="assets/screenshots/linux/transcript.png" alt="Kalam on Omarchy showing a finished Hindi and English transcript with a Copy button" loading="lazy" width="1440" height="1240">
+                    <figcaption class="shot-copy">
+                        <strong>Review and copy</strong>
+                        <span>The latest transcript stays in the window; press C to copy it or Space to record again.</span>
+                    </figcaption>
+                </figure>
+                <figure class="screenshot-card">
+                    <img src="assets/screenshots/linux/history.png" alt="Kalam history on Omarchy filtered by a search phrase, with Copy, Export, and Delete on the matching entry" loading="lazy" width="1440" height="1240">
+                    <figcaption class="shot-copy">
+                        <strong>Search local history</strong>
+                        <span>Press / to search by phrase, then copy an entry or export it as text, Markdown, JSON, or SRT.</span>
+                    </figcaption>
+                </figure>
+            </div>
+            <p class="privacy-note linux-only">The transcript is Sarvam AI's output for a sentence from a <a href="https://commons.wikimedia.org/wiki/File:Hi-Hind-Europiya_bhaashaa_parivaar_part1.ogg" style="color: inherit;">spoken Hindi Wikipedia article</a> (Magicalsaumy, CC BY-SA 3.0).</p>
+            <div class="workflow-grid mac-only">
+                <figure class="screenshot-card">
+                    <img src="assets/screenshots/macos/kalam-transcript-blurred.png" alt="Kalam showing a completed transcript with private text blurred" loading="lazy" width="1100" height="1430">
                     <figcaption class="shot-copy">
                         <strong>Review and copy</strong>
                         <span>Your latest transcript stays ready to copy while you begin the next recording.</span>
                     </figcaption>
                 </figure>
                 <figure class="screenshot-card">
-                    <img src="assets/screenshots/kalam-history-blurred.png" alt="Kalam searchable transcription history with private text blurred" loading="lazy" width="1137" height="1383">
+                    <img src="assets/screenshots/macos/kalam-history-blurred.png" alt="Kalam searchable transcription history with private text blurred" loading="lazy" width="1137" height="1383">
                     <figcaption class="shot-copy">
                         <strong>Search local history</strong>
                         <span>Find an earlier recording by phrase and check its date and duration.</span>
                     </figcaption>
                 </figure>
             </div>
-            <p class="privacy-note">Transcript content is intentionally blurred in these public screenshots.</p>
+            <p class="privacy-note mac-only">Transcript content is intentionally blurred in these public screenshots.</p>
         </section>
 
         <h2 class="section-title">Features</h2>
@@ -509,13 +613,16 @@
             </div>
             <div class="feature">
                 <div class="feature-icon">🔒</div>
-                <h3>Private by Default</h3>
-                <p>The default local engine keeps your voice on your Mac. The cloud engine is opt-in and clearly labeled.</p>
+                <h3 class="mac-only">Private by Default</h3>
+                <h3 class="linux-only">Private When You Want It</h3>
+                <p class="mac-only">The default local engine keeps your voice on your Mac. The cloud engine is opt-in and clearly labeled.</p>
+                <p class="linux-only">Choose Local Whisper and nothing leaves your machine. Sarvam AI is the default on Linux and is clearly labeled as cloud; your key lives in the keyring.</p>
             </div>
             <div class="feature">
                 <div class="feature-icon">⌨️</div>
                 <h3>Tap or Hold</h3>
-                <p>Tap Cmd+Shift+Space to toggle, or hold it like a walkie-talkie. Works from any app.</p>
+                <p class="mac-only">Tap Cmd+Shift+Space to toggle, or hold it like a walkie-talkie. Works from any app.</p>
+                <p class="linux-only">Press Alt+Space to toggle, or hold Alt+Right Alt like a walkie-talkie. Works from any app.</p>
             </div>
             <div class="feature">
                 <div class="feature-icon">🎯</div>
@@ -530,37 +637,68 @@
             <div class="feature">
                 <div class="feature-icon">💾</div>
                 <h3>History &amp; Files</h3>
-                <p>Drop WAV, MP3, M4A, AAC, AIFF, CAF, FLAC, Ogg/Opus, MP4, or QuickTime files onto the menu bar icon. Kalam extracts the audio, uses your selected engine, copies the result, and saves it in searchable History.</p>
+                <p class="mac-only">Drop WAV, MP3, M4A, AAC, AIFF, CAF, FLAC, Ogg/Opus, MP4, or QuickTime files onto the menu bar icon. Kalam extracts the audio, uses your selected engine, copies the result, and saves it in searchable History.</p>
+                <p class="linux-only">Drop an audio or video file on the window, or run <code>kalam transcribe file.mp3</code> in a terminal. Kalam extracts the audio, uses your selected engine, and saves the result in searchable History.</p>
             </div>
         </div>
 
-        <section class="setup-section" id="first-setup" aria-labelledby="setup-title">
+        <section class="setup-section linux-only" id="first-setup-linux" aria-labelledby="setup-title-linux">
+            <h2 class="section-title" id="setup-title-linux">Set Up Kalam Once</h2>
+            <p class="section-intro">Add your Sarvam key, then dictate from anywhere. Kalam sits in the Omarchy bar and shows what it is doing.</p>
+            <div class="setup-grid">
+                <figure class="setup-card">
+                    <img src="assets/screenshots/linux/settings.png" alt="Kalam settings on Omarchy with Sarvam AI selected, a saved API key, the code-mixed mode, and the optional Whisper models" loading="lazy" width="1440" height="2000">
+                    <figcaption>
+                        <span class="step-number">1</span><strong>Add your Sarvam key</strong>
+                        <p>Sarvam AI is the default engine. Paste a free key from dashboard.sarvam.ai and pick code-mixed or native script. Whisper models are optional and download only when you ask.</p>
+                    </figcaption>
+                </figure>
+                <figure class="setup-card">
+                    <div class="strip-shots">
+                        <img src="assets/screenshots/linux/bar-idle.png" alt="The Omarchy bar with Kalam's pen icon beside the other status icons" loading="lazy" width="420" height="34">
+                        <img src="assets/screenshots/linux/bar-recording.png" alt="The same bar while recording, with the pen icon in the bar's active colour" loading="lazy" width="420" height="34">
+                        <img src="assets/screenshots/linux/pill.png" alt="Kalam's floating recording pill showing a red dot, a two-second timer, and a voice level strip" loading="lazy" width="190" height="44">
+                    </div>
+                    <figcaption>
+                        <span class="step-number">2</span><strong>Watch the bar</strong>
+                        <p>The pen in the Omarchy bar changes colour while recording, and a pill at the bottom of the screen shows the timer and your voice level. Click the pen to open Kalam; right-click it to dictate.</p>
+                    </figcaption>
+                    <img src="assets/screenshots/linux/shortcuts.png" alt="Kalam's shortcut list on Omarchy" loading="lazy" width="1440" height="1240">
+                    <figcaption>
+                        <span class="step-number">3</span><strong>Stay on the keyboard</strong>
+                        <p>Every action has a key. Press ? in the window to see them all.</p>
+                    </figcaption>
+                </figure>
+            </div>
+        </section>
+
+        <section class="setup-section mac-only" id="first-setup" aria-labelledby="setup-title">
             <h2 class="section-title" id="setup-title">Set Up Kalam Once</h2>
             <p class="section-intro">Choose how Kalam transcribes, keep a local fallback ready, and make the shortcut available whenever you need it.</p>
             <div class="setup-grid">
                 <figure class="setup-card">
-                    <img src="assets/screenshots/kalam-transcription-engine.png" alt="Kalam settings with Sarvam AI selected as the transcription engine" loading="lazy" width="1288" height="1144">
+                    <img src="assets/screenshots/macos/kalam-transcription-engine.png" alt="Kalam settings with Sarvam AI selected as the transcription engine" loading="lazy" width="1288" height="1144">
                     <figcaption>
                         <span class="step-number">1</span><strong>Choose your engine</strong>
                         <p>Stay offline with local Whisper, or add a Sarvam API key for stronger Hindi and Hinglish transcription.</p>
                     </figcaption>
                 </figure>
                 <figure class="setup-card">
-                    <img src="assets/screenshots/kalam-speech-models.png" alt="Kalam settings for downloading and selecting local Whisper models" loading="lazy" width="1288" height="1144">
+                    <img src="assets/screenshots/macos/kalam-speech-models.png" alt="Kalam settings for downloading and selecting local Whisper models" loading="lazy" width="1288" height="1144">
                     <figcaption>
                         <span class="step-number">2</span><strong>Download a local model</strong>
                         <p>Use Base for compact English dictation or Large Turbo for multilingual local use and cloud fallback.</p>
                     </figcaption>
                 </figure>
                 <figure class="setup-card">
-                    <img src="assets/screenshots/kalam-settings-general.png" alt="Kalam general settings for launch at login and the global hotkey" loading="lazy" width="1288" height="1144">
+                    <img src="assets/screenshots/macos/kalam-settings-general.png" alt="Kalam general settings for launch at login and the global hotkey" loading="lazy" width="1288" height="1144">
                     <figcaption>
                         <span class="step-number">3</span><strong>Keep Kalam ready</strong>
                         <p>Start Kalam at login and leave the global hotkey enabled for dictation from any app.</p>
                     </figcaption>
                 </figure>
                 <figure class="setup-card">
-                    <img src="assets/screenshots/kalam-personal-dictionary.png" alt="Kalam personal dictionary settings and app information" loading="lazy" width="1288" height="1144">
+                    <img src="assets/screenshots/macos/kalam-personal-dictionary.png" alt="Kalam personal dictionary settings and app information" loading="lazy" width="1288" height="1144">
                     <figcaption>
                         <span class="step-number">4</span><strong>Teach it your vocabulary</strong>
                         <p>Add names, acronyms, and specialist terms once so future transcripts use the right spelling.</p>
@@ -569,7 +707,37 @@
             </div>
         </section>
 
-        <div class="install-section">
+        <div class="install-section linux-only" id="install-linux">
+            <h2>Install on Omarchy</h2>
+            <p>Kalam for Linux is built from source as an Arch package. Run this in a terminal:</p>
+            <code class="code-block">git clone https://github.com/harshvardhaniimi/kalam.git &amp;&amp; cd kalam &amp;&amp; linux/bin/install</code>
+            <p>Then make Kalam your dictation keys and add it to the bar:</p>
+            <code class="code-block">omarchy-install-dictation-kalam</code>
+            <p class="note">Run <code>git pull</code> and <code>linux/bin/install</code> again to update. Your settings, key, and History are kept.</p>
+        </div>
+
+        <div class="permissions linux-only">
+            <h2>What It Needs</h2>
+            <ul>
+                <li><strong>Omarchy</strong> (Arch Linux with Hyprland) — where Kalam is built and tested<br>
+                    <span style="color: var(--text-secondary); font-size: 0.85rem;">The package pulls in Qt 6, wtype, wl-clipboard, and ffmpeg</span></li>
+                <li><strong>A Sarvam API key</strong> — free at <a href="https://dashboard.sarvam.ai">dashboard.sarvam.ai</a><br>
+                    <span style="color: var(--text-secondary); font-size: 0.85rem;">Paste it in Settings; it is stored in your keyring</span></li>
+                <li><strong>whisper-cpp</strong> (optional) — only for the Local Whisper engine<br>
+                    <span style="color: var(--text-secondary); font-size: 0.85rem;">Also serves as an offline fallback when Sarvam can't be reached</span></li>
+            </ul>
+            <div class="info-box">
+                <strong>No permission prompts.</strong> Linux has no Accessibility or Microphone dialogs to click through; Kalam uses your default microphone, or the one you pick in Settings.
+            </div>
+        </div>
+
+        <div class="install-section linux-only" style="text-align: center;">
+            <h2>Uninstall</h2>
+            <p>To stop using Kalam and remove it:</p>
+            <code class="code-block">omarchy-remove-dictation-kalam &amp;&amp; sudo pacman -Rns kalam</code>
+        </div>
+
+        <div class="install-section mac-only">
             <h2>Quick Install</h2>
             <p>Run this in Terminal:</p>
             <code class="code-block">curl -sL https://raw.githubusercontent.com/harshvardhaniimi/kalam/main/install.sh | bash</code>
@@ -577,7 +745,7 @@
             <p class="note">After the first installation, right-click the app in Applications → "Open" once.</p>
         </div>
 
-        <div class="install-section">
+        <div class="install-section mac-only">
             <h2>Manual Install</h2>
             <ol>
                 <li><a href="https://github.com/harshvardhaniimi/kalam/releases/latest/download/Kalam.zip">Download Kalam.zip</a> and extract it</li>
@@ -590,7 +758,7 @@
             </div>
         </div>
 
-        <div class="permissions">
+        <div class="permissions mac-only">
             <h2>Permissions Needed</h2>
             <ul>
                 <li><strong>Microphone</strong> — For recording audio<br>
@@ -606,7 +774,7 @@
             </div>
         </div>
 
-        <div class="install-section" style="text-align: center;">
+        <div class="install-section mac-only" style="text-align: center;">
             <h2>Uninstall</h2>
             <p>To completely remove Kalam:</p>
             <code class="code-block">curl -sL https://raw.githubusercontent.com/harshvardhaniimi/kalam/main/uninstall.sh | bash</code>
@@ -627,5 +795,29 @@
             </p>
         </footer>
     </div>
+    <script>
+        // Show one platform's parts. The address (#linux or #macos) wins,
+        // then the visitor's own system; macOS is the default.
+        (function () {
+            var buttons = document.querySelectorAll('[data-os-choice]');
+            function show(os) {
+                document.body.setAttribute('data-os', os);
+                buttons.forEach(function (button) {
+                    button.setAttribute('aria-pressed', String(button.getAttribute('data-os-choice') === os));
+                });
+            }
+            var hash = location.hash.toLowerCase();
+            var linux = hash === '#linux' || hash === '#install-linux'
+                || (hash !== '#macos' && /linux|x11/i.test(navigator.userAgent) && !/android/i.test(navigator.userAgent));
+            show(linux ? 'linux' : 'mac');
+            buttons.forEach(function (button) {
+                button.addEventListener('click', function () {
+                    var os = button.getAttribute('data-os-choice');
+                    show(os);
+                    history.replaceState(null, '', os === 'linux' ? '#linux' : '#macos');
+                });
+            });
+        })();
+    </script>
 </body>
 </html>

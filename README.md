@@ -1,13 +1,23 @@
 # Kalam 🖋️
 
-A native macOS menu bar app for speech-to-text dictation — built for Hindi + English (including code-mixed Hinglish), and private by default.
-Local transcription runs on-device via OpenAI Whisper; an optional Sarvam AI cloud engine delivers the best Hindi accuracy available.
+Speech-to-text dictation built for Hindi + English (including code-mixed Hinglish), for macOS and Linux.
+Press a key in any app, speak, and the text appears at your cursor.
+Transcription runs on-device with OpenAI Whisper, or through Sarvam AI's cloud engine for the best Hindi accuracy available.
+
+| Platform | App | Start here |
+| --- | --- | --- |
+| **macOS** 14+ (Apple Silicon) | Native Swift menu bar app, in the repository root | This README |
+| **Linux** (Omarchy: Arch + Hyprland) | Qt Quick app with an Omarchy bar widget, in [`linux/`](linux/) | [`linux/README.md`](linux/README.md) |
+
+Both apps share the same behaviour (engines, personal dictionary, history, export formats) but no code.
+The site at [harshvardhaniimi.github.io/kalam](https://harshvardhaniimi.github.io/kalam/) covers both.
+
+The rest of this README describes the macOS app.
 
 ![macOS](https://img.shields.io/badge/macOS-14.0+-blue)
+![Linux](https://img.shields.io/badge/Linux-Omarchy-green)
 ![Swift](https://img.shields.io/badge/Swift-5.9+-orange)
 ![License](https://img.shields.io/badge/license-MIT-green)
-
-> **Linux:** a port for Omarchy/Hyprland lives in [`linux/`](linux/README.md).
 
 ## Features
 
@@ -53,7 +63,7 @@ Kalam stays in your menu bar until you need it.
 Tap or hold `Cmd+Shift+Space` from any app, speak, and let the transcript appear at your cursor.
 
 <p align="center">
-  <img src="docs/assets/screenshots/kalam-ready-file-drop.png" alt="Kalam menu-bar popover ready to transcribe with an audio-file button and drag-to-transcribe instruction" width="520">
+  <img src="docs/assets/screenshots/macos/kalam-ready-file-drop.png" alt="Kalam menu-bar popover ready to transcribe with an audio-file button and drag-to-transcribe instruction" width="520">
 </p>
 
 <table>
@@ -62,8 +72,8 @@ Tap or hold `Cmd+Shift+Space` from any app, speak, and let the transcript appear
     <td width="50%" align="center"><strong>Find it later</strong></td>
   </tr>
   <tr>
-    <td><img src="docs/assets/screenshots/kalam-transcript-blurred.png" alt="Kalam showing a completed transcript with private text blurred" width="100%"></td>
-    <td><img src="docs/assets/screenshots/kalam-history-blurred.png" alt="Kalam transcription history with private text blurred" width="100%"></td>
+    <td><img src="docs/assets/screenshots/macos/kalam-transcript-blurred.png" alt="Kalam showing a completed transcript with private text blurred" width="100%"></td>
+    <td><img src="docs/assets/screenshots/macos/kalam-history-blurred.png" alt="Kalam transcription history with private text blurred" width="100%"></td>
   </tr>
   <tr>
     <td valign="top">Review the result, copy it, or start another recording.</td>
@@ -133,8 +143,8 @@ Or open `Package.swift` in Xcode and press ⌘+R.
     <td width="50%" align="center"><strong>2. Download a local model</strong></td>
   </tr>
   <tr>
-    <td><img src="docs/assets/screenshots/kalam-transcription-engine.png" alt="Kalam settings with Sarvam AI selected as the transcription engine" width="100%"></td>
-    <td><img src="docs/assets/screenshots/kalam-speech-models.png" alt="Kalam speech model download and selection settings" width="100%"></td>
+    <td><img src="docs/assets/screenshots/macos/kalam-transcription-engine.png" alt="Kalam settings with Sarvam AI selected as the transcription engine" width="100%"></td>
+    <td><img src="docs/assets/screenshots/macos/kalam-speech-models.png" alt="Kalam speech model download and selection settings" width="100%"></td>
   </tr>
   <tr>
     <td valign="top">Sarvam is optional and sends recorded audio to its cloud service.</td>
@@ -148,8 +158,8 @@ Or open `Package.swift` in Xcode and press ⌘+R.
     <td width="50%" align="center"><strong>4. Teach it your vocabulary</strong></td>
   </tr>
   <tr>
-    <td><img src="docs/assets/screenshots/kalam-settings-general.png" alt="Kalam general settings for launch at login and the global hotkey" width="100%"></td>
-    <td><img src="docs/assets/screenshots/kalam-personal-dictionary.png" alt="Kalam personal dictionary settings and app information" width="100%"></td>
+    <td><img src="docs/assets/screenshots/macos/kalam-settings-general.png" alt="Kalam general settings for launch at login and the global hotkey" width="100%"></td>
+    <td><img src="docs/assets/screenshots/macos/kalam-personal-dictionary.png" alt="Kalam personal dictionary settings and app information" width="100%"></td>
   </tr>
   <tr>
     <td valign="top">Start at login and keep the global hotkey enabled for dictation from any app.</td>

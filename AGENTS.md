@@ -4,8 +4,15 @@ Guidance for AI coding agents working in this repository.
 
 ## Project Overview
 
-Kalam is a native macOS menu bar app for speech-to-text dictation.
-It has two transcription engines, selectable in Settings:
+Kalam is a speech-to-text dictation app for Hindi + English with two implementations in one repository:
+
+- **macOS** — a native Swift menu bar app at the repository root (`Sources/`, `Package.swift`, the build and install scripts). Everything in this file up to "Linux port" describes it.
+- **Linux** — a Qt Quick/C++ app for Omarchy in `linux/`. See "Linux port" at the end and `linux/README.md`.
+
+Shared, platform-neutral material lives in `docs/` (the site, served from `main`; screenshots in `docs/assets/screenshots/macos/` and `.../linux/`).
+`install.sh` and `uninstall.sh` must stay at the root: installed copies and the site fetch them by that URL.
+
+The macOS app has two transcription engines, selectable in Settings:
 
 - **Local Whisper** via WhisperKit (CoreML) — offline, private. For Hindi use the Large Turbo model (`openai_whisper-large-v3-v20240930`); tiny/base/small are effectively English-only.
 - **Sarvam AI** (cloud, `saaras:v3` via REST) — substantially better for Hindi/Hinglish (~half the WER of Whisper large-v3 on spontaneous Hindi). Needs an API key from dashboard.sarvam.ai; recordings are chunked to ≤25 s per request. Falls back to local Whisper automatically on any failure.

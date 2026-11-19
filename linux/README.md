@@ -1,6 +1,6 @@
 # Kalam for Linux
 
-![Kalam's history page with three dictated notes](screenshot.png)
+![Kalam on Omarchy showing a finished Hindi + English transcript](../docs/assets/screenshots/linux/transcript.png)
 
 Speech-to-text dictation for Hindi + English (and code-mixed Hinglish), built for [Omarchy](https://omarchy.org) and Hyprland.
 Press a key anywhere, speak, and the text lands at your cursor.
